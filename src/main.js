@@ -175,8 +175,16 @@ var init = async function(argv)
   var rendererWebpackTemplate = path.resolve(__dirname, "templates", "renderer-webpack.config.js");
 
   log.info(`Writing webpack.config.js files @ ${config.main.src} ${config.renderer.src}`);
-  fs.writeFileSync(mainWebpackOutputPath, fs.readFileSync(mainWebpackTemplate, "utf8"));
-  fs.writeFileSync(rendererWebpackOutputPath, fs.readFileSync(rendererWebpackTemplate, "utf8"));
+
+  if (!fs.existsSync(mainWebpackOutputPath) || argv.force)
+  {fs.writeFileSync(mainWebpackOutputPath, fs.readFileSync(mainWebpackTemplate, "utf8"));}
+  else
+  {log.warn(`${config.main["webpack-config"]} already exists ignoring overwrite; use --force to overwrite.`);}
+
+  if (!fs.existsSync(rendererWebpackOutputPath) || argv.force)
+  {fs.writeFileSync(rendererWebpackOutputPath, fs.readFileSync(rendererWebpackTemplate, "utf8"));}
+  else
+  {log.warn(`${config.renderer["webpack-config"]} already exists ignoring overwrite; use --force to overwrite.`);}
 };
 
 /**
