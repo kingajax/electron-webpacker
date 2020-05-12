@@ -197,14 +197,10 @@ var build = function(argv)
 {
   var config = __getConfig(argv.path);
   buildMain(argv, config);
-  buildRenderer(argv, config);
 };
+
 
 var buildMain = async function(argv, config)
-{
-};
-
-var buildRenderer = async function(argv, config)
 {
   log.info("Build process started for main process.");
   log.info(`Loading ${config.main["webpack-config"]} @ ${config.main.src}`);
