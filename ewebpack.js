@@ -35,82 +35,6 @@ var ewebpackConfig =
   }
 };
 
-var webpackConfigMainTextFile = `// const path = require('path');
-
-module.exports = {
-  /*
-   * This is just a webpack.config.js file see documentation here for
-   * configuration of webpack.config.js
-   *
-   * Below is the default options applied
-   * to the main electron webpack.config.js by ewebpack
-   *
-   * Add custom options to this file to mixin additional
-   * settings. If you would like ewebpack to not apply any configurations to
-   * webpack.config.js, add CLI option --override-webpack when running.
-   *
-   * e.g.,
-   *
-   * ewebpack build --webpack-override
-   * ewebpack start --webpack-override
-   *
-   * You can modify the .ewebpack.json file for more fine-grained control
-   * "main-webpack-override": true and "renderer-webpack-override": true;
-   *
-   * \`ewebpack build\` or \`ewebpack start\`
-   *
-   * ewebpack will read the configuration file and apply the defaults
-   *
-   * Below is the default settings ewebpack will apply unless told not to with
-   * \`--webpack-override\` or .webpack.json configuration; use this file
-   * as a base when overriding ewebpack.
-   */
-  // entry: "./main.js",
-  // type: "electron-main",
-  // output: {
-  //   filename: "./bundle.js"
-  // }
-};
-`;
-
-var webpackConfigRendererTextFile = `//const path = require('path');
-
-module.exports = {
-  /*
-   * This is just a webpack.config.js file see documentation here for
-   * configuration of webpack.config.js
-   *
-   * Below is the default options applied
-   * to the renderer electron webpack.config.js by ewebpack
-   *
-   * Add custom options to this file to mixin additional
-   * settings. If you would like ewebpack to not apply any configurations to
-   * webpack.config.js, add CLI option --override-webpack when running.
-   *
-   * e.g.,
-   *
-   * ewebpack build --webpack-override
-   * ewebpack start --webpack-override
-   *
-   * You can modify the .ewebpack.json file for more fine-grained control
-   * "main-webpack-override": true and "renderer-webpack-override": true;
-   *
-   * \`ewebpack build\` or \`ewebpack start\`
-   *
-   * ewebpack will read the configuration file and apply the defaults
-   *
-   * Below is the default settings ewebpack will apply unless told not to with
-   * \`--webpack-override\` or .webpack.json configuration; use this file
-   * as a base when overriding ewebpack.
-   */
-  // entry: "./main.js",
-  // type: "electron-renderer",
-  // output: {
-  //   filename: "./bundle.js"
-  // }
-};
-`;
-
 var __before = function(argv)
 {
   log.level = argv.verbose ? "debug" : "info";
@@ -141,7 +65,7 @@ var init = async function(argv)
 
   if (fs.existsSync(f))
   {
-    log.warn(`ewebpack.json already exists: delete this file to start over.`);
+    log.warn(`ewebpack.json exists (using this configuration): delete this file to start over.`);
 
     var data = JSON.parse(fs.readFileSync(f, "utf8"));
     log.debug("ewebpack.json data: ", data);
@@ -162,15 +86,39 @@ var init = async function(argv)
   var paths = [ewebpackConfig.main.src, ewebpackConfig.renderer.src];
   for (p of paths)
   {
-    log.info(`Creating directory ${p}`);
-    fs.mkdirSync(path.resolve(argv.path, p), {recursive: true});
+    if (!fs.existsSync(path.resolve(argv.path, p)) || argv.force)
+    {
+      log.info(`Creating directory ${p}`);
+      fs.mkdirSync(path.resolve(argv.path, p), {recursive: true});
+    }
+    else if (argv.path != ".")
+    {
+      log.error(`${p} already exists; use --force to overwrite.`);
+      return;
+    }
   }
 
-  log.info(`Initializing webpack.config.js files`);
-  var mainPath = path.resolve(argv.path, ewebpackConfig.main.src, ewebpackConfig.main["webpack-config"]);
-  var rendererPath = path.resolve(argv.path, ewebpackConfig.renderer.src, ewebpackConfig.renderer["webpack-config"]);
-  fs.writeFileSync(mainPath, webpackConfigMainTextFile);
-  fs.writeFileSync(rendererPath, webpackConfigRendererTextFile);
+  log.info(`Writing Electron main process: main.js @ ${ewebpackConfig.main.src}`);
+  var mainTemplate = path.resolve(__dirname, "templates", "electron-main.js");
+  var mainOutputPath = path.resolve(argv.path, ewebpackConfig.main.src, "main.js");
+  if (!fs.existsSync(mainOutputPath) || argv.force)
+  {
+    fs.writeFileSync(path.resolve(argv.path, ewebpackConfig.main.src, "main.js"), fs.readFileSync(mainTemplate, "utf8"));
+  }
+  else
+  {
+    log.error("Electron main.js process already exists; use --force to overwrite.");
+    return;
+  }
+
+  var mainWebpackOutputPath = path.resolve(argv.path, ewebpackConfig.main.src, ewebpackConfig.main["webpack-config"]);
+  var rendererWebpackOutputPath = path.resolve(argv.path, ewebpackConfig.renderer.src, ewebpackConfig.renderer["webpack-config"]);
+  var mainWebpackTemplate = path.resolve(__dirname, "templates", "main-webpack.config.js");
+  var rendererWebpackTemplate = path.resolve(__dirname, "templates", "renderer-webpack.config.js");
+
+  log.info(`Writing webpack.config.js files @ ${ewebpackConfig.main.src} ${ewebpackConfig.renderer.src}`);
+  fs.writeFileSync(mainWebpackOutputPath, fs.readFileSync(mainWebpackTemplate, "utf8"));
+  fs.writeFileSync(rendererWebpackOutputPath, fs.readFileSync(rendererWebpackTemplate, "utf8"));
 };
 
 /**
