@@ -196,7 +196,15 @@ var init = async function(argv)
 var build = function(argv)
 {
   var config = __getConfig(argv.path);
-  buildMain(argv, config);
+  if (argv.type == "all" || argv.type == "." || argv.type == "main")
+  {
+    buildMain(argv, config);
+  }
+
+  if (argv.type == "all" || argv.type == "." || argv.type == "renderer")
+  {
+    log.warn("build 2");
+  }
 };
 
 
@@ -228,7 +236,15 @@ var buildMain = async function(argv, config)
 
   var pack = util.promisify(webpack);
   var result = await pack(webpackConfig);
-  console.log(result);
+
+  log.info(`Webpack entry file: ${result.compilation.compiler.options.entry}`);
+  log.info(`Webpack output directory: ${result.compilation.compiler.outputPath}`);
+
+  if (result.hasErrors())
+  {
+    log.error(`Webpack build error ${result.compilation.compiler.options.entry} @ ${config.main.src}; to change the filename modify ${config.main["webpack-config"]}.`);
+    log.error(__inspectHelper(result.compilation.errors));
+  }
 };
 
 /**
@@ -278,7 +294,7 @@ var _yargBuildBuilder = function(y)
      at build time; only use custom configuration specified in
      webpack.config.js files.`
   })
-  .default({type: "all", path: "."})
+  .default("type", "all").default("path", ".")
 };
 
 var buildNote = "Build to dist/ directory or output directory specified "
