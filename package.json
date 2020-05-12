@@ -1,0 +1,15 @@
+{
+  "name": "ewebpack",
+  "version": "0.0.1",
+  "description": "Electron + Webpack toolkit. Provides commands to build, start and dist a electron + webpack application.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "kingajax",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "lodash": "^4.17.15",
+    "winston": "^3.2.1",
+    "yargs": "^15.3.1"
+  }
+}

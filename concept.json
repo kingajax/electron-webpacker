@@ -1,0 +1,55 @@
+Concept:
+
+electropacker cli tool
+
+Commands
+
+init [:path]
+build {type:}[main|renderer]
+start {:env}[development|production]
+dist
+
+descriptions:
+
+init: initializes the directory structure for the main and renderer process using current configuration.
+  Creates folder structure for main and renderer electron processes.
+    default:
+   src/
+   |
+   |——main/
+   |  |--main.js
+   |  |——webpack.config.js
+   |
+   |——renderer/
+      |--main.js
+      |——webpack.config.js
+
+Options
+--config
+--override-webpack :[main|renderer]
+--debug
+--help
+
+JSON configuration default:
+
+{
+  "main.src": "src/main",
+  "main.webpack.config": "webpack.config.js",
+  "main.webpack.override": false
+  "renderer.src": "src/renderer",
+  "renderer.webpack.config": "webpack.config.js",
+  "renderer.webpack.override": false
+}
+
+Example ussage:
+
+electropacker init
+electropacker build
+electropacker build main or electronpacker build Renderer
+electropacker start development
+electropacker start production
+electropacker dist
+
+or
+
+epak init

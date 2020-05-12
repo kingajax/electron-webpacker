@@ -1,0 +1,12 @@
+{
+  "main": {
+    "src": "src/main",
+    "webpack-config": "webpack.config.js",
+    "webpack-override": false
+  },
+  "renderer": {
+    "src": "src/renderer",
+    "webpack-config": "webpack.config.js",
+    "webpack-override": false
+  }
+}
