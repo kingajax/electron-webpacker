@@ -48,7 +48,7 @@ var __WEBPACK_MAIN_CONFIG = {
   mode: "development",
   devtool: "source-map",
   context: ".",
-  entry: "main.js",
+  entry: "./main.js",
   target: "electron-main",
   node: {
     __dirname: false
@@ -226,12 +226,13 @@ var buildRenderer = async function(argv, config)
 
   __WEBPACK_MAIN_CONFIG.context = path.resolve(config.main.src);
   if (argv["override-webpack"] || config.main["webpack-override"]) log.warn("Webpack config override enabled; ignoring defaults, applying no settings to build. Use with caution.");
+
   var webpackConfig = argv["override-webpack"] || config.main["webpack-override"] ? custom : _.extend(__WEBPACK_MAIN_CONFIG, custom);
   log.info(util.inspect(webpackConfig, {showHidden: false, depth: 1}, {}, true));
 
   var pack = util.promisify(webpack);
-  // var result = await pack(_.extend(webpack, {}));
-  // console.log(result);
+  var result = await pack(webpackConfig);
+  console.log(result);
 };
 
 /**
