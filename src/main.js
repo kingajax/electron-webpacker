@@ -21,9 +21,16 @@ const fs = require("fs");
 const path = require("path");
 const util = require("util");
 const _ = require("lodash");
+const webpack = require("webpack");
 const log = require("./logger");
 
-var ewebpackConfig =
+/*
+ * WEBPACK CONFIGURATIONs
+ */
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const __CONFIG_FILE_NAME = "ewebpack.json";
+
+var __BASE_CONFIG =
 {
   "main": {
     "src": "src/main",
@@ -37,6 +44,55 @@ var ewebpackConfig =
   }
 };
 
+var __WEBPACK_MAIN_CONFIG = {
+  mode: "development",
+  devtool: "source-map",
+  context: ".",
+  entry: "main.js",
+  target: "electron-main",
+  node: {
+    __dirname: false
+  },
+  plugins: [new CleanWebpackPlugin()]
+};
+
+var __inspectHelper = function(obj, depth = 1)
+{return util.inspect(obj, {showHidden: false, depth}, {}, true);}
+
+var isObject = function(a)
+{return (!!a) && (a.constructor === Object);};
+
+/**
+ * [description]
+ * @return {[type]} [description]
+ */
+var __getConfig = function(p)
+{
+  var data = {};
+
+  var file = path.resolve(p, __CONFIG_FILE_NAME);
+  var raw = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "{}";
+
+  try {
+    data = JSON.parse(raw);
+  } catch (e)
+  {
+    log.error(`Maliformed ${__CONFIG_FILE_NAME} @ ${p}.`);
+    return false;
+  };
+
+  var mix = _.extend(__BASE_CONFIG, data);
+  log.debug(`Loaded ewebpack.json from ${p}`);
+  log.debug(__inspectHelper(mix));
+
+  return mix;
+};
+
+/**
+ * runs before all commands
+ * @param  {[type]} argv [description]
+ * @return {[type]}      [description]
+ */
 var __before = function(argv)
 {
   log.level = argv.verbose ? "debug" : "info";
@@ -63,77 +119,111 @@ var init = async function(argv)
   log.debug(`Provided path: ${argv.path}`);
   log.debug(`Resolved path to ${path.resolve(argv.path)}`);
 
-  var f = path.resolve(argv.path, "ewebpack.json");
+  var config = __getConfig(argv.path);
 
+  if (!config)
+  {log.error("Cannot continue due to maliformed ewebpack.json. Any continue could overwrite or currupt project."); return;}
+
+  var f = path.resolve(argv.path, __CONFIG_FILE_NAME);
   if (fs.existsSync(f))
   {
     log.warn(`ewebpack.json exists (using this configuration): delete this file to start over.`);
-
-    var data = JSON.parse(fs.readFileSync(f, "utf8"));
-    log.debug("ewebpack.json data: ", data);
-    ewebpackConfig = _.extend(ewebpackConfig, data);
   }
   else
   {
     log.debug(`ewebpack.json does not exist; writing file.`);
-    fs.writeFileSync(f, JSON.stringify(ewebpackConfig, {}, 2));
-    if (argv.verbose) console.log(`File written`);
+    fs.writeFileSync(f, JSON.stringify(__BASE_CONFIG, {}, 2));
+    log.debug("Wrote file.");
   }
 
-  log.debug("Loaded config: ");
-  if (argv.verbose) console.log(ewebpackConfig);
+  log.debug("Loaded config: ", config);
 
-  log.debug(`main.src=${ewebpackConfig.main.src}`);
-
-  var paths = [ewebpackConfig.main.src, ewebpackConfig.renderer.src];
+  var paths = [config.main.src, config.renderer.src];
   for (p of paths)
   {
-    if (!fs.existsSync(path.resolve(argv.path, p)) || argv.force)
-    {
-      log.info(`Creating directory ${p}`);
-      fs.mkdirSync(path.resolve(argv.path, p), {recursive: true});
-    }
-    else if (argv.path != ".")
-    {
-      log.error(`${p} already exists; use --force to overwrite.`);
-      return;
-    }
+    log.info(`Created directory ${p}`);
+    fs.mkdirSync(path.resolve(argv.path, p), {recursive: true});
   }
 
-  log.info(`Writing Electron main process: main.js @ ${ewebpackConfig.main.src}`);
+  log.info(`Writing Electron main process: main.js @ ${config.main.src}`);
   var mainTemplate = path.resolve(__dirname, "templates", "electron-main.js");
-  var mainOutputPath = path.resolve(argv.path, ewebpackConfig.main.src, "main.js");
+  var mainOutputPath = path.resolve(argv.path, config.main.src, "main.js");
   if (!fs.existsSync(mainOutputPath) || argv.force)
   {
     fs.writeFileSync(mainOutputPath, fs.readFileSync(mainTemplate, "utf8"));
   }
   else
   {
-    log.error("Electron main.js process already exists; use --force to overwrite.");
-    return;
+    log.warn("main.js already exists ignoring overwrite; use --force to overwrite.");
   }
 
-  log.info(`Writing Electron renderer process: renderer.js @ ${ewebpackConfig.renderer.src}`);
-  var rendererOutputPath = path.resolve(argv.path, ewebpackConfig.renderer.src, "renderer.js");
+  log.info(`Writing Electron renderer process: renderer.js @ ${config.renderer.src}`);
+  var rendererOutputPath = path.resolve(argv.path, config.renderer.src, "renderer.js");
   if (!fs.existsSync(rendererOutputPath) || argv.force)
   {
     fs.writeFileSync(rendererOutputPath, "");
   }
   else
   {
-    log.error("Electron main.js process already exists; use --force to overwrite.");
-    return;
+    log.warn("renderer.js already exists ignoring overwrite; use --force to overwrite.");
   }
 
-  var mainWebpackOutputPath = path.resolve(argv.path, ewebpackConfig.main["webpack-config"].indexOf("/") == -1 ? ewebpackConfig.main.src : ".", ewebpackConfig.main["webpack-config"]);
-  var rendererWebpackOutputPath = path.resolve(argv.path, ewebpackConfig.renderer["webpack-config"].indexOf("/") == -1 ? ewebpackConfig.renderer.src : ".", ewebpackConfig.renderer["webpack-config"]);
+  var mainWebpackOutputPath = path.resolve(argv.path, config.main["webpack-config"].indexOf("/") == -1 ? config.main.src : ".", config.main["webpack-config"]);
+  var rendererWebpackOutputPath = path.resolve(argv.path, config.renderer["webpack-config"].indexOf("/") == -1 ? config.renderer.src : ".", config.renderer["webpack-config"]);
 
   var mainWebpackTemplate = path.resolve(__dirname, "templates", "main-webpack.config.js");
   var rendererWebpackTemplate = path.resolve(__dirname, "templates", "renderer-webpack.config.js");
 
-  log.info(`Writing webpack.config.js files @ ${ewebpackConfig.main.src} ${ewebpackConfig.renderer.src}`);
+  log.info(`Writing webpack.config.js files @ ${config.main.src} ${config.renderer.src}`);
   fs.writeFileSync(mainWebpackOutputPath, fs.readFileSync(mainWebpackTemplate, "utf8"));
   fs.writeFileSync(rendererWebpackOutputPath, fs.readFileSync(rendererWebpackTemplate, "utf8"));
+};
+
+/**
+ * Run webpack using default + provided config files
+ *
+ * @param  {[type]} argv [description]
+ * @return {[type]}      [description]
+ */
+var build = function(argv)
+{
+  var config = __getConfig(argv.path);
+  buildMain(argv, config);
+  buildRenderer(argv, config);
+};
+
+var buildMain = async function(argv, config)
+{
+};
+
+var buildRenderer = async function(argv, config)
+{
+  log.info("Build process started for main process.");
+  log.info(`Loading ${config.main["webpack-config"]} @ ${config.main.src}`);
+
+  /*
+   * load in custom webpack.config.js file specified in ewebpack.json
+   */
+  var custom = {};
+  if (fs.existsSync(path.resolve(config.main.src, config.main["webpack-config"])))
+  {
+    try {
+      var load = require(path.resolve(config.main.src, config.main["webpack-config"]));
+      if (isObject(load))
+      {custom = load;}
+    } catch(e) {console.log(e);}
+  }
+  else
+  {log.warn(`${config.main["webpack-config"]} @ ${config.main.src} does not exist.`)}
+
+  __WEBPACK_MAIN_CONFIG.context = path.resolve(config.main.src);
+  if (argv["override-webpack"] || config.main["webpack-override"]) log.warn("Webpack config override enabled; ignoring defaults, applying no settings to build. Use with caution.");
+  var webpackConfig = argv["override-webpack"] || config.main["webpack-override"] ? custom : _.extend(__WEBPACK_MAIN_CONFIG, custom);
+  log.info(util.inspect(webpackConfig, {showHidden: false, depth: 1}, {}, true));
+
+  var pack = util.promisify(webpack);
+  // var result = await pack(_.extend(webpack, {}));
+  // console.log(result);
 };
 
 /**
@@ -144,19 +234,53 @@ var init = async function(argv)
  */
 var _yargInitBuilder = function(y)
 {
-    y.option("force", {
-      alias: "f",
-      default: false,
-      description: `Override any existing files; initializing the new project
-      at the structure specific. Dangerous will overrwrite exsiting data`
-    });
-
-    y.positional("path", {
-      type: "string",
-      default: ".",
-      describe: "path or folder to initialize project."
-    }).default("path", ".");
+  return y.option("force", {
+    alias: "f",
+    default: false,
+    description: `Override any existing files; initializing the new project
+    at the structure specific. Dangerous will overrwrite exsiting data`
+  })
+  .positional("path", {
+    type: "string",
+    default: ".",
+    describe: "path or folder to initialize project."
+  })
+  .default({path: "."});
 };
+
+
+/**
+ * yargBuilder callback; helps setup command args in yargs
+ *
+ * @param  {[type]} y yargs
+ * @return {[builder]}   builder
+ */
+var _yargBuildBuilder = function(y)
+{
+  return y.positional("path", {
+    type: "string",
+    default: ".",
+    describe: "path or folder to initialize project."
+  })
+  .positional("type", {
+    type: "string",
+    default: "all",
+    describe: "Type of build to perform: main, renderer, all"
+  })
+  .option("override-webpack", {
+    default: false,
+    description: `Don't apply any default configuration to webpack.config.js
+     at build time; only use custom configuration specified in
+     webpack.config.js files.`
+  })
+  .default({type: "all", path: "."})
+};
+
+var buildNote = "Build to dist/ directory or output directory specified "
+  .concat("inside webpack.config.js. You can configure webpack.config.js for both ")
+  .concat("the main and renderer processes inside ewebpack.json at project root. ")
+  .concat("Note: minimal configurartions are applied to Webpack. This is necessary to run in Electron. ")
+  .concat(" If you do not want this behavior and prefer to disable it, use --override-webpack");
 
 /*
  * SETUP YARGS CLI interface
@@ -196,6 +320,12 @@ yargs
     "Initializes an .ewebpack.json configuration file and electron+webpack project structure",
     _yargInitBuilder, init
   )
+
+  /*
+   * build [type] [path] command
+   */
+  .command("build [type] [path]", buildNote, _yargBuildBuilder, build)
+
 
   /*
    * Add verbose loggining option
