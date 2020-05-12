@@ -53,6 +53,7 @@ var __WEBPACK_MAIN_CONFIG = {
   node: {
     __dirname: false
   },
+  output: {},
   plugins: [new CleanWebpackPlugin()]
 };
 
@@ -193,12 +194,12 @@ var init = async function(argv)
  * @param  {[type]} argv [description]
  * @return {[type]}      [description]
  */
-var build = function(argv)
+var build = async function(argv)
 {
   var config = __getConfig(argv.path);
   if (argv.type == "all" || argv.type == "." || argv.type == "main")
   {
-    buildMain(argv, config);
+    await buildMain(argv, config);
   }
 
   if (argv.type == "all" || argv.type == "." || argv.type == "renderer")
@@ -210,17 +211,17 @@ var build = function(argv)
 
 var buildMain = async function(argv, config)
 {
-  log.info("Build process started for main process.");
+  log.info(`Build process started for main process @ ${argv.path}`);
   log.info(`Loading ${config.main["webpack-config"]} @ ${config.main.src}`);
 
   /*
    * load in custom webpack.config.js file specified in ewebpack.json
    */
   var custom = {};
-  if (fs.existsSync(path.resolve(config.main.src, config.main["webpack-config"])))
+  if (fs.existsSync(path.resolve(argv.path, config.main.src, config.main["webpack-config"])))
   {
     try {
-      var load = require(path.resolve(config.main.src, config.main["webpack-config"]));
+      var load = require(path.resolve(argv.path, config.main.src, config.main["webpack-config"]));
       if (isObject(load))
       {custom = load;}
     } catch(e) {console.log(e);}
@@ -228,7 +229,8 @@ var buildMain = async function(argv, config)
   else
   {log.warn(`${config.main["webpack-config"]} @ ${config.main.src} does not exist.`)}
 
-  __WEBPACK_MAIN_CONFIG.context = path.resolve(config.main.src);
+  __WEBPACK_MAIN_CONFIG.context = path.resolve(argv.path, config.main.src);
+  __WEBPACK_MAIN_CONFIG.output.path = path.resolve(argv.path, "dist");
   if (argv["override-webpack"] || config.main["webpack-override"]) log.warn("Webpack config override enabled; ignoring defaults, applying no settings to build. Use with caution.");
 
   var webpackConfig = argv["override-webpack"] || config.main["webpack-override"] ? custom : _.extend(__WEBPACK_MAIN_CONFIG, custom);
@@ -237,6 +239,7 @@ var buildMain = async function(argv, config)
   var pack = util.promisify(webpack);
   var result = await pack(webpackConfig);
 
+  log.info(`Webpack context directory: ${__WEBPACK_MAIN_CONFIG.context}`);
   log.info(`Webpack entry file: ${result.compilation.compiler.options.entry}`);
   log.info(`Webpack output directory: ${result.compilation.compiler.outputPath}`);
 
