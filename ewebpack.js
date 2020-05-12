@@ -103,7 +103,19 @@ var init = async function(argv)
   var mainOutputPath = path.resolve(argv.path, ewebpackConfig.main.src, "main.js");
   if (!fs.existsSync(mainOutputPath) || argv.force)
   {
-    fs.writeFileSync(path.resolve(argv.path, ewebpackConfig.main.src, "main.js"), fs.readFileSync(mainTemplate, "utf8"));
+    fs.writeFileSync(mainOutputPath, fs.readFileSync(mainTemplate, "utf8"));
+  }
+  else
+  {
+    log.error("Electron main.js process already exists; use --force to overwrite.");
+    return;
+  }
+
+  log.info(`Writing Electron renderer process: renderer.js @ ${ewebpackConfig.renderer.src}`);
+  var rendererOutputPath = path.resolve(argv.path, ewebpackConfig.renderer.src, "renderer.js");
+  if (!fs.existsSync(rendererOutputPath) || argv.force)
+  {
+    fs.writeFileSync(rendererOutputPath, "");
   }
   else
   {
