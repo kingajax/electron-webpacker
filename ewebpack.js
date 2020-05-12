@@ -123,8 +123,9 @@ var init = async function(argv)
     return;
   }
 
-  var mainWebpackOutputPath = path.resolve(argv.path, ewebpackConfig.main.src, ewebpackConfig.main["webpack-config"]);
-  var rendererWebpackOutputPath = path.resolve(argv.path, ewebpackConfig.renderer.src, ewebpackConfig.renderer["webpack-config"]);
+  var mainWebpackOutputPath = path.resolve(argv.path, ewebpackConfig.main["webpack-config"].indexOf("/") == -1 ? ewebpackConfig.main.src : ".", ewebpackConfig.main["webpack-config"]);
+  var rendererWebpackOutputPath = path.resolve(argv.path, ewebpackConfig.renderer["webpack-config"].indexOf("/") == -1 ? ewebpackConfig.renderer.src : ".", ewebpackConfig.renderer["webpack-config"]);
+
   var mainWebpackTemplate = path.resolve(__dirname, "templates", "main-webpack.config.js");
   var rendererWebpackTemplate = path.resolve(__dirname, "templates", "renderer-webpack.config.js");
 
