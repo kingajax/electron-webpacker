@@ -400,4 +400,4 @@ yargs
   .middleware([__before])
 
   .help()
-  .parse(process.argv);
+  .parse();
