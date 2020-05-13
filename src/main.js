@@ -58,7 +58,7 @@ var __WEBPACK_MAIN_CONFIG = {
 };
 
 var __inspectHelper = function(obj, depth = 1)
-{return util.inspect(obj, {showHidden: false, depth}, {}, true);}
+{return util.inspect(obj, {showHidden: false, depth}, {}, true);};
 
 var isObject = function(a)
 {return (!!a) && (a.constructor === Object);};
@@ -78,15 +78,39 @@ var __getConfig = function(p)
     data = JSON.parse(raw);
   } catch (e)
   {
-    log.error(`Maliformed ${__CONFIG_FILE_NAME} @ ${p}.`);
+    log.error(`Maliformed ${__CONFIG_FILE_NAME} @ ${p}. ${e.message}`);
     return false;
-  };
+  }
 
   var mix = _.extend(__BASE_CONFIG, data);
   log.debug(`Loaded ewebpack.json from ${p}`);
   log.debug(__inspectHelper(mix));
 
   return mix;
+};
+
+/**
+ * [__before description]
+ * @type {[type]}
+ */
+var __writeConfigFile = function(p)
+{
+  var f = path.resolve(p, __CONFIG_FILE_NAME);
+  fs.writeFileSync(f, JSON.stringify(__BASE_CONFIG, {}, 2));
+};
+
+var __validateConfig = function(config)
+{
+  if (config.main.src == config.renderer.src && config.main["webpack-config"] == config.renderer["webpack-config"])
+  {
+    log.warn("Conflicting webpack-config names in ewebpack.json.");
+
+    var msg = `When your 'src' folder for main and renderer are both '${config.main.src}' \n`
+      .concat(`you cannot have the same 'webpack-config' value '${config.main["webpack-config"]}.\n`)
+      .concat(`Use unique file names or change the 'src' location for main or renderer processes.`);
+
+    throw new Error(msg);
+  }
 };
 
 /**
@@ -116,11 +140,13 @@ var defaultCommand = function(argv)
 var init = async function(argv)
 {
 
-  log.info(`Initialing Electron + Webpack project.`);
   log.debug(`Provided path: ${argv.path}`);
   log.debug(`Resolved path to ${path.resolve(argv.path)}`);
 
   var config = __getConfig(argv.path);
+  try {
+    __validateConfig(config);
+  } catch (e) {log.error(e.message); return;}
 
   if (!config)
   {log.error("Cannot continue due to maliformed ewebpack.json. Any continue could overwrite or currupt project."); return;}
@@ -133,14 +159,14 @@ var init = async function(argv)
   else
   {
     log.debug(`ewebpack.json does not exist; writing file.`);
-    fs.writeFileSync(f, JSON.stringify(__BASE_CONFIG, {}, 2));
+    __writeConfigFile(argv.path);
     log.debug("Wrote file.");
   }
 
   log.debug("Loaded config: ", config);
 
   var paths = [config.main.src, config.renderer.src];
-  for (p of paths)
+  for (let p of paths)
   {
     log.info(`Created directory ${p}`);
     fs.mkdirSync(path.resolve(argv.path, p), {recursive: true});
@@ -197,49 +223,65 @@ var init = async function(argv)
 var build = async function(argv, type)
 {
   var config = __getConfig(argv.path);
+  if (!config && !argv.force) {log.warn("Use --force to bypass ewebpack.json check and use defaults."); return;}
+  if (!config && argv.force) {config = __BASE_CONFIG;}
   if (["main", "all"].indexOf(type) > -1) buildMain(argv, config);
+  if (["renderer", "all"].indexOf(type) > -1) buildRenderer(argv, config);
 };
 
 
 var buildMain = async function(argv, config)
 {
   log.info(`Build process started for main process @ ${argv.path}`);
+  if (!fs.existsSync(path.resolve(argv.path, config.main.src)))
+  {
+    log.warn(`Did you run init?`);
+    log.info(`${path.resolve(argv.path, config.main.src)} directory doesn't exist.`);
+    log.error(`Webpack looks in ${path.resolve(argv.path, config.main.src)} for entry file. You can specify this file in ewebpack.json.`);
+    return;
+  }
+
   log.info(`Loading ${config.main["webpack-config"]} @ ${config.main.src}`);
 
+  __WEBPACK_MAIN_CONFIG.mode = argv.environment;
   __WEBPACK_MAIN_CONFIG.context = path.resolve(argv.path, config.main.src);
   __WEBPACK_MAIN_CONFIG.output.path = path.resolve(argv.path, "dist");
 
   /*
    * load in custom webpack.config.js file specified in ewebpack.json
    */
-  var custom = {context: __WEBPACK_MAIN_CONFIG.context, entry: __WEBPACK_MAIN_CONFIG.entry, target: "electron-main"};
+  var custom = {context: __WEBPACK_MAIN_CONFIG.context, entry: __WEBPACK_MAIN_CONFIG.entry, target: "electron-main", output: {path: __WEBPACK_MAIN_CONFIG.output.path}};
   if (fs.existsSync(path.resolve(argv.path, config.main.src, config.main["webpack-config"])))
   {
     try {
       var load = require(path.resolve(argv.path, config.main.src, config.main["webpack-config"]));
       if (isObject(load))
-      {custom = _.mixin(custom, load);}
+      {custom = _.extend(custom, load);}
     } catch(e) {console.log(e);}
   }
   else
-  {log.warn(`${config.main["webpack-config"]} @ ${config.main.src} does not exist.`)}
+  {log.warn(`${config.main["webpack-config"]} @ ${config.main.src} does not exist.`);}
 
   if (argv["override-webpack"] || config.main["webpack-override"]) log.warn("Webpack override engaged loading minimal defaults:");
   var webpackConfig = argv["override-webpack"] || config.main["webpack-override"] ? custom : _.extend(__WEBPACK_MAIN_CONFIG, custom);
   log.info(util.inspect(webpackConfig, {showHidden: false, depth: 1}, {}, true));
 
   var pack = util.promisify(webpack);
-  var result = await pack(webpackConfig);
+  var result;
+  try {
+    result = await pack(webpackConfig);
+  } catch (e) {log.error("Webpack build resulted in error:"); log.error(__inspectHelper(e));}
 
-  log.info(`Webpack context directory: ${__WEBPACK_MAIN_CONFIG.context}`);
-  log.info(`Webpack entry file: ${result.compilation.compiler.options.entry}`);
-  log.info(`Webpack output directory: ${result.compilation.compiler.outputPath}`);
-
-  if (result.hasErrors())
+  if (result && result.hasErrors())
   {
     log.error(`Webpack build error ${result.compilation.compiler.options.entry} @ ${config.main.src}; to change the filename modify ${config.main["webpack-config"]}.`);
     log.error(__inspectHelper(result.compilation.errors));
   }
+};
+
+var buildRenderer = function(argv, type)
+{
+  log.warn("Not implemented.");
 };
 
 /**
@@ -264,7 +306,6 @@ var _yargInitBuilder = function(y)
   .default({path: "."});
 };
 
-
 /**
  * yargBuilder callback; helps setup command args in yargs
  *
@@ -284,14 +325,24 @@ var _yargBuildBuilder = function(y)
      at build time; only use custom configuration specified in
      webpack.config.js files.`
   })
-  .default("type", "all").default("path", ".")
+  .option("environment", {
+    default: "development",
+    description: "Set the runtime environment. Will be passed to Webpack and Electron when building or running."
+  })
+  .option("force", {
+    default: false,
+    description: "Force build process. Overwriting files as necessary."
+  })
+  .default("path", ".");
 };
 
-var buildNote = "Build to dist/ directory or output directory specified "
-  .concat("inside webpack.config.js. You can configure webpack.config.js for both ")
-  .concat("the main and renderer processes inside ewebpack.json at project root. ")
-  .concat("Note: minimal configurartions are applied to Webpack. This is necessary to run in Electron. ")
-  .concat(" If you do not want this behavior and prefer to disable it, use --override-webpack");
+var buildMainNote = "Build to dist/ directory or output directory specified "
+  .concat("inside webpack.config.js for Electron main process. Configure webpack.config.js location for ")
+  .concat("main process in ewebpack.json. Note: Some base configurartions are applied ")
+  .concat("to Webpack as necessary to run. If you want to keep this configuration to a minimal ")
+  .concat(" use --override-webpack.");
+
+var buildRendererNote = "";
 
 /*
  * SETUP YARGS CLI interface
@@ -335,10 +386,9 @@ yargs
   /*
    * build [type] [path] command
    */
-  .command("build [path]", buildNote, _yargBuildBuilder, (argv) => build(argv, "all"))
-  .command("build:main [path]", buildNote, _yargBuildBuilder, (argv) => build(argv, "main"))
-
-
+  .command("build [path]", "Runs build process for Electron main and renderer process. See build:main, build:renderer below.", _yargBuildBuilder, (argv) => build(argv, "all"))
+  .command("build:main [path]", buildMainNote, _yargBuildBuilder, (argv) => build(argv, "main"))
+  .command("build:renderer [path]", buildRendererNote, _yargBuildBuilder, (argv) => build(argv, "renderer"))
 
   /*
    * Add verbose loggining option
@@ -350,4 +400,4 @@ yargs
   .middleware([__before])
 
   .help()
-  .argv;
+  .parse(process.argv);
