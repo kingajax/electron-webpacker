@@ -194,18 +194,10 @@ var init = async function(argv)
  * @param  {[type]} argv [description]
  * @return {[type]}      [description]
  */
-var build = async function(argv)
+var build = async function(argv, type)
 {
   var config = __getConfig(argv.path);
-  if (argv.type == "all" || argv.type == "." || argv.type == "main")
-  {
-    await buildMain(argv, config);
-  }
-
-  if (argv.type == "all" || argv.type == "." || argv.type == "renderer")
-  {
-    log.warn("build 2");
-  }
+  if (["main", "all"].indexOf(type) > -1) buildMain(argv, config);
 };
 
 
@@ -214,25 +206,25 @@ var buildMain = async function(argv, config)
   log.info(`Build process started for main process @ ${argv.path}`);
   log.info(`Loading ${config.main["webpack-config"]} @ ${config.main.src}`);
 
+  __WEBPACK_MAIN_CONFIG.context = path.resolve(argv.path, config.main.src);
+  __WEBPACK_MAIN_CONFIG.output.path = path.resolve(argv.path, "dist");
+
   /*
    * load in custom webpack.config.js file specified in ewebpack.json
    */
-  var custom = {};
+  var custom = {context: __WEBPACK_MAIN_CONFIG.context, entry: __WEBPACK_MAIN_CONFIG.entry, target: "electron-main"};
   if (fs.existsSync(path.resolve(argv.path, config.main.src, config.main["webpack-config"])))
   {
     try {
       var load = require(path.resolve(argv.path, config.main.src, config.main["webpack-config"]));
       if (isObject(load))
-      {custom = load;}
+      {custom = _.mixin(custom, load);}
     } catch(e) {console.log(e);}
   }
   else
   {log.warn(`${config.main["webpack-config"]} @ ${config.main.src} does not exist.`)}
 
-  __WEBPACK_MAIN_CONFIG.context = path.resolve(argv.path, config.main.src);
-  __WEBPACK_MAIN_CONFIG.output.path = path.resolve(argv.path, "dist");
-  if (argv["override-webpack"] || config.main["webpack-override"]) log.warn("Webpack config override enabled; ignoring defaults, applying no settings to build. Use with caution.");
-
+  if (argv["override-webpack"] || config.main["webpack-override"]) log.warn("Webpack override engaged loading minimal defaults:");
   var webpackConfig = argv["override-webpack"] || config.main["webpack-override"] ? custom : _.extend(__WEBPACK_MAIN_CONFIG, custom);
   log.info(util.inspect(webpackConfig, {showHidden: false, depth: 1}, {}, true));
 
@@ -285,11 +277,6 @@ var _yargBuildBuilder = function(y)
     type: "string",
     default: ".",
     describe: "path or folder to initialize project."
-  })
-  .positional("type", {
-    type: "string",
-    default: "all",
-    describe: "Type of build to perform: main, renderer, all"
   })
   .option("override-webpack", {
     default: false,
@@ -348,7 +335,9 @@ yargs
   /*
    * build [type] [path] command
    */
-  .command("build [type] [path]", buildNote, _yargBuildBuilder, build)
+  .command("build [path]", buildNote, _yargBuildBuilder, (argv) => build(argv, "all"))
+  .command("build:main [path]", buildNote, _yargBuildBuilder, (argv) => build(argv, "main"))
+
 
 
   /*
