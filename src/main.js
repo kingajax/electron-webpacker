@@ -537,7 +537,7 @@ var distribute = function(argv)
 var runElectronWebpack = function(argv)
 {
   // if we are running for production, we must build both main and renderer
-  argv.type = argv.environment == "production" ? "all" : "main"
+  argv.type = argv.environment == "production" ? "all" : "main";
 
   // build webpack-cli
   build(argv);
@@ -611,7 +611,7 @@ var runElectronWebpack = function(argv)
     args.push(`--port ${argv.port}`);
   }
   else
-  {argv.port = webpackConfig.devServer.port}
+  {argv.port = webpackConfig.devServer.port;}
 
   /*
    * SPAWN webpack-dev-server & Electron
@@ -724,7 +724,7 @@ yargs
   /*
    *
    */
-  .command(["run [path]", "r", "start"], "Run Electron Webpack application.", (y) => {return y.option("port", {description: "Webpack dev server port.", default: 9000}).option("force", {description: "Force build.", default: false}).option("environment", {description: "Environment passed to Electron", default: "development"}).option("path", {description: "Path", default: "."});}, (argv) => {runElectronWebpack(argv)})
+  .command(["run [path]", "r", "start"], "Run Electron Webpack application.", (y) => {return y.option("port", {description: "Webpack dev server port.", default: 9000}).option("force", {description: "Force build.", default: false}).option("environment", {description: "Environment passed to Electron", default: "development"}).option("path", {description: "Path", default: "."});}, (argv) => {runElectronWebpack(argv);})
   /*
    * Add verbose loggining option
    */
