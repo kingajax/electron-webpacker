@@ -629,6 +629,7 @@ var runElectronWebpack = function(argv)
   log.info(server);
   var dev = spawn(server, serverArgs, {
     stdio: "inherit",
+    windowsHide: true
   });
 
   var output = _.has(webpackConfig, "output.path") ? webpackConfig.output.path : "./dist";

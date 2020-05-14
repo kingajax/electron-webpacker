@@ -1,4 +1,7 @@
-const { app, BrowserWindow } = require('electron');
+const {app, BrowserWindow} = require('electron');
+const path = require("path");
+const {format} = require('url');
+
 
 function createWindow () {
   // Create the browser window.
@@ -10,8 +13,17 @@ function createWindow () {
     }
   });
 
-  // and load the index.html of the app.
-  win.loadFile('index.html');
+  var prodUrl = format({
+    pathname: path.join(__dirname, "index.html"),
+    protocol: 'file',
+    slashes: true
+  });
+
+  var port = process.env.WEBPACK_DEV_SERVER_PORT || 9000;
+  win.loadURL(process.env.NODE_ENV == "development" ?
+    `http://localhost:${port}/renderer` : prodUrl
+  );
+
 
   // Open the DevTools.
   win.webContents.openDevTools();
