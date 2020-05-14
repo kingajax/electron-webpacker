@@ -262,7 +262,7 @@ var __loadWebpackConfig = function(context, p, filename)
   try {
     var config = require(file);
     if (_.isObject(config)) return config;
-  } catch (e) {log.warn(`Could not find ${filename} @ ${p}`);}
+  } catch (e) {log.warn(`Could not find ${filename} @ ${p} message: ${e.message}`);}
   return {};
 };
 
@@ -469,12 +469,15 @@ var distribute = function(argv)
    * install it if it does not existing
    */
   var builder = isBinaryInstalled("electron-builder", argv.path);
-  if (!builder) {
+  var electron = isBinaryInstalled("electron", argv.path);
+  if (!builder || !electron) {
     log.warn("electron-builder not found on environment path.");
     log.info("Installing electron-builder:");
-    run("npm", ["install", "electron-builder", "--save-dev"], argv.path);
+    run("npm", ["install", "electron-builder", "electron", "--save-dev"], argv.path);
     builder = isBinaryInstalled("electron-builder", argv.path);
   }
+
+  log.info(builder);
 
   if (!builder)
   {log.error("electron-builder could not be found. Check path environment. Put electron-builder on it."); return;}
@@ -485,6 +488,11 @@ var distribute = function(argv)
   argv.type = "all";
   argv.environment = "production";
   build(argv);
+
+  /*
+   * Run electron builder
+   */
+  run(builder, ["./dist"], argv.path);
 };
 
 /**
@@ -580,7 +588,7 @@ yargs
    * build [type] [path] command
    */
   .command("build [type] [path]", "Build to dist/; config webpack-file location @ ewebpack.json; default is src/main/webpack.config.js.", _yargBuildBuilder, (argv) => {build(argv);})
-  .command("dist [path]", "Dist and build electron package.", (y) => {return y.option("force", {description: "Force build.", default: false}).option("path", {description: "Path", default: "."});}, (argv) => {distribute(argv);})
+  .command(["dist [path]", "distribute"], "Dist and build electron package.", (y) => {return y.option("force", {description: "Force build.", default: false}).option("path", {description: "Path", default: "."});}, (argv) => {distribute(argv);})
   /*
    * Add verbose loggining option
    */
