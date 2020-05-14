@@ -226,13 +226,18 @@ var init = async function(argv)
  */
 var isBinaryInstalled = function(binary, p)
 {
-  var local = path.resolve(p, "node_modules", ".bin");
-  log.debug(`Looking for ${binary} local path ${local}`);
+  var npm = run("npm", ["bin"], path.resolve(p));
+  var local = npm.status == 0 ? String(npm.stdout).trim() : false;
+  log.debug(`Looking for ${binary} @ npm bin path ${local}`);
+
   /*
    * GLOBALLY installed or locally?
    */
-  return which.sync(binary, {nothrow: true, path: path.resolve(p, "node_modules", ".bin")}) ||
+  var resolved = which.sync(binary, {nothrow: true, path: local}) ||
     which.sync(binary, {nothrow: true});
+  log.debug(`${binary} found at ${resolved}`);
+
+  return resolved;
 };
 
 /**
@@ -241,10 +246,10 @@ var isBinaryInstalled = function(binary, p)
  *
  * @return {[type]} [description]
  */
-var run = function(cmd, args, cwd)
+var run = function(cmd, args, cwd, stdio = "pipe", env = {})
 {
   log.debug(`Run cmd: ${cmd} ${args.toString().replace(/,/g, " ")} @ cwd: ${cwd}`);
-  const result = spawnSync(cmd, args, {cwd: path.resolve(cwd), stdio: "inherit"});
+  const result = spawnSync(cmd, args, {cwd: path.resolve(cwd), stdio}, env);
   if (result.status !== 0) {
     log.debug(`Error running ${cmd} ${args.toString().replace(/,/g, " ")} @ cwd=${path.resolve(cwd)}: exited with ${result.status}`);
   }
@@ -364,7 +369,7 @@ var build = function(argv)
   if (!webpack) {
     log.warn("webpack-cli not found on environment path.");
     log.info("Installing webpack-cli:");
-    run("npm", ["install", "webpack", "webpack-cli", "--save-dev"], argv.path);
+    run("npm", ["install", "webpack", "webpack-cli", "--save-dev"], argv.path, "inherit");
   }
 
   /*
@@ -407,16 +412,15 @@ var buildMain = async function(argv, config)
    * We installed webpack-cli? Check again!
    */
   var webpack = isBinaryInstalled("webpack-cli", argv.path);
-  log.info(webpack);
   if (!webpack)
-  {log.error("webpack-cli could not be found. Check path environment. Put webpack-cli on it."); return;}
+  { log.info(webpack); log.error("webpack-cli could not be found. Check path environment. Put webpack-cli on it."); return;}
 
   log.info(`Running webpack-cli for main process @ ${config.main.path}`);
   var args = __buildWebpackCliArgs(
     argv.path, config, webpackConfig, argv.environment, "electron-main",
     "main.js", webpackFile, path.resolve(argv.path, config.main.path)
   );
-  run(webpack, args, argv.path);
+  run(webpack, args, argv.path, "inherit");
 };
 
 /**
@@ -451,7 +455,7 @@ var buildRenderer = function(argv, config)
     argv.path, config, webpackConfig, argv.environment, "electron-renderer",
     "renderer.js", webpackFile, path.resolve(argv.path, config.renderer.path)
   );
-  run(webpack, args, argv.path);
+  run(webpack, args, argv.path, "inherit");
 };
 
 /**
@@ -463,6 +467,13 @@ var buildRenderer = function(argv, config)
 var distribute = function(argv)
 {
   /*
+   * SET defaults for dist build
+   */
+  argv.type = "all";
+  argv.environment = "production";
+  build(argv);
+
+  /*
    * check if webpack-cli is installed;
    * install it if it does not existing
    */
@@ -471,26 +482,17 @@ var distribute = function(argv)
   if (!builder || !electron) {
     log.warn("electron-builder not found on environment path.");
     log.info("Installing electron-builder:");
-    run("npm", ["install", "electron-builder", "electron", "--save-dev"], argv.path);
+    run("npm", ["install", "electron-builder", "electron", "--save-dev"], argv.path, "inherit");
     builder = isBinaryInstalled("electron-builder", argv.path);
   }
-
-  log.info(builder);
 
   if (!builder)
   {log.error("electron-builder could not be found. Check path environment. Put electron-builder on it."); return;}
 
   /*
-   * SET defaults for dist build
-   */
-  argv.type = "all";
-  argv.environment = "production";
-  build(argv);
-
-  /*
    * Run electron builder
    */
-  var dist = run(builder, ["./dist"], argv.path);
+  var dist = run(builder, ["./dist"], argv.path, "inherit");
   if (dist.status !== 0)
   {log.error(`electron-builder failed; see electron-builder documentation. Make sure your package.json file has everything it needs!`);}
 };
