@@ -14,7 +14,7 @@ module.exports = {
    */
   // entry: "./main.js",
   // or renderer.js if main.js already exists
-  // entry: "./renderer.js"
+  // entry: "./renderer.js",
   // context: path.resolve(__dirname),
   // target: "electron-renderer",
   // mode: "development",

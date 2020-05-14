@@ -262,9 +262,8 @@ var run = function(cmd, args, cwd, stdio = "pipe", env = {})
  * @param  {[type]} config [description]
  * @return {[type]}        [description]
  */
-var __loadWebpackConfig = function(context, p, filename)
+var __loadWebpackConfig = function(file)
 {
-  var file = path.resolve(context, p, filename);
   try {
     var config = require(file);
     if (_.isObject(config)) return config;
@@ -405,7 +404,7 @@ var buildMain = async function(argv, config)
   if (!fs.existsSync(webpackFile) && !argv.force)
   {log.error(`Webpack file ${config.main["webpack-file"]} @ ${config.main.path} doesn't exist? Did you run 'epack init'. If you must, use --force=true as bypass. Use at own risk.?`); return;}
 
-  var webpackConfig = __loadWebpackConfig(argv.path, config.main.path, config.main["webpack-file"]);
+  var webpackConfig = __loadWebpackConfig(webpackFile);
   log.debug(__inspectObj(webpackConfig));
 
   /*
@@ -445,7 +444,7 @@ var buildRenderer = function(argv, config)
   if (!fs.existsSync(webpackFile) && !argv.force)
   {log.error(`Webpack file ${config.renderer["webpack-file"]} @ ${config.renderer.path} doesn't exist? Did you run 'epack init'. If you must, use --force=true as bypass. Use at own risk.?`); return;}
 
-  var webpackConfig = __loadWebpackConfig(argv.path, config.renderer.path, config.renderer["webpack-file"]);
+  var webpackConfig = __loadWebpackConfig(webpackFile);
   log.debug(__inspectObj(webpackConfig));
 
   /*
@@ -515,7 +514,8 @@ var distribute = function(argv)
   _.defaultsDeep(config, __BASE_CONFIG);
   log.debug(`${__CONFIG_FILE_NAME} loaded: ${__inspectObj(config)}`);
 
-  var webpackConfig = __loadWebpackConfig(argv.path, config.renderer.path, config.renderer["webpack-file"]);
+  var webpackFile = path.resolve(argv.path, config.main.path, config.main["webpack-file"]);
+  var webpackConfig = __loadWebpackConfig(webpackFile);
   log.debug(__inspectObj(webpackConfig));
 
   /*
@@ -596,10 +596,30 @@ var runElectronWebpack = function(argv)
   _.defaultsDeep(config, __BASE_CONFIG);
   log.debug(`${__CONFIG_FILE_NAME} loaded: ${__inspectObj(config)}`);
 
+  var webpackFile = path.resolve(argv.path, config.renderer.path, config.renderer["webpack-file"]);
+  var webpackConfig = __loadWebpackConfig(webpackFile);
+  log.debug(__inspectObj(webpackConfig));
+
+
+  var args = __buildWebpackCliArgs(
+    argv.path, config, webpackConfig, argv.environment, "electron-renderer",
+    "renderer.js", webpackFile, path.resolve(argv.path, config.renderer.path)
+  );
+
+  if (!_.has(webpackConfig, "devServer.port"))
+  {
+    args.push(`--port ${argv.port}`);
+  }
+  else
+  {argv.port = webpackConfig.devServer.port}
+
   /*
    * SPAWN webpack-dev-server & Electron
    */
+  log.info(`Running webpack-dev-server for renderer process @ ${config.renderer.path}`);
   log.info(`Using port ${argv.port}`);
+  console.log(args);
+
 };
 
 /**
