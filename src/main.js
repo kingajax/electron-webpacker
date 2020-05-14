@@ -188,12 +188,13 @@ var init = async function(argv)
     log.warn("main.js already exists ignoring overwrite; use --force=true to overwrite.");
   }
 
+  var rendererTemplate = path.resolve(__dirname, "templates", "renderer-main.js");
   var rendererFile = config.main.path == config.renderer.path ? "renderer.js" : "main.js";
   log.info(`Writing Electron renderer process: ${rendererFile} @ ${config.renderer.path}`);
   var rendererOutputPath = path.resolve(argv.path, config.renderer.path, rendererFile);
   if (!fs.existsSync(rendererOutputPath) || argv.force)
   {
-    fs.writeFileSync(rendererOutputPath, "");
+    fs.writeFileSync(rendererOutputPath, fs.readFileSync(rendererTemplate, "utf8"));
   }
   else
   {

@@ -19,4 +19,8 @@ module.exports = {
   // output: {
   //   filename: "./main.js"
   // }
+  node: {
+    __dirname: false,
+    __filename: false
+  }
 };
