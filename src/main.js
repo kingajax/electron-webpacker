@@ -622,9 +622,9 @@ var runElectronWebpack = function(argv)
   log.info(`Running webpack-dev-server for renderer process @ ${config.renderer.path}`);
   log.info(`Using port ${argv.port}`);
 
-  var env = Object.create(process.env);
-  env.NODE_ENV = argv.environment;
-  env.WEBPACK_DEV_SERVER_PORT = argv.port;
+  // var env = Object.create(process.env);
+  // env.NODE_ENV = argv.environment;
+  // env.WEBPACK_DEV_SERVER_PORT = argv.port;
 
   log.info(server);
   var dev = spawn(server, serverArgs, {
@@ -636,8 +636,7 @@ var runElectronWebpack = function(argv)
   var elect = spawn(electron, [path.resolve(output, main)], {
     cwd: path.resolve(argv.path),
     stdio: "inherit",
-    windowsHide: true,
-    env
+    windowsHide: true
   });
 
   dev.on("close", (c) => {log.warn(`webpack-dev-server quit with status ${c}`);});
