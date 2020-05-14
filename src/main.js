@@ -285,7 +285,7 @@ var __loadWebpackConfig = function(context, p, filename)
  * @param {string} p relative path to resolve all paths
  * @return {[type]} [description]
  */
-var __buildWebpackCliArgs = function(p, config, webpack, env, target, output, configFile)
+var __buildWebpackCliArgs = function(p, config, webpack, env, target, output, configFile, context)
 {
   var args = [];
 
@@ -298,7 +298,6 @@ var __buildWebpackCliArgs = function(p, config, webpack, env, target, output, co
   }
 
   // add context
-  var context = path.resolve(p, config.main.path);
   if (!_.has(webpack, "context")) {
     args.push(`--context=${context}`);
   }
@@ -414,8 +413,8 @@ var buildMain = async function(argv, config)
 
   log.info(`Running webpack-cli for main process @ ${config.main.path}`);
   var args = __buildWebpackCliArgs(
-    argv.path, config, webpackConfig, argv.environment,
-    "electron-main", "main.js", webpackFile
+    argv.path, config, webpackConfig, argv.environment, "electron-main",
+    "main.js", webpackFile, path.resolve(argv.path, config.main.path)
   );
   run(webpack, args, argv.path);
 };
@@ -449,8 +448,8 @@ var buildRenderer = function(argv, config)
 
   log.info(`Running webpack-cli for renderer process @ ${config.renderer.path}`);
   var args = __buildWebpackCliArgs(
-    argv.path, config, webpackConfig, argv.environment,
-    "electron-renderer", "renderer.js", webpackFile
+    argv.path, config, webpackConfig, argv.environment, "electron-renderer",
+    "renderer.js", webpackFile, path.resolve(argv.path, config.renderer.path)
   );
   run(webpack, args, argv.path);
 };
