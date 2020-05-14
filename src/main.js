@@ -645,6 +645,7 @@ var runElectronWebpack = function(argv)
   var env = Object.create(process.env);
   env.NODE_ENV = argv.environment;
   env.WEBPACK_DEV_SERVER_PORT = argv.port;
+  env.WEBPACK_DEV_SERVER_PATH = _.has(webpackRendererConfig, "output.filename") ? webpackRendererConfig.output.filename.slice(0, -3) : "renderer";
   log.debug(__inspectObj(env));
   log.info(server);
 
