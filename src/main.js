@@ -147,7 +147,7 @@ var init = async function(argv)
   {config.renderer["webpack-file"] = "webpack.renderer.js";}
 
   _.defaultsDeep(config, __BASE_CONFIG);
-  log.info(__inspectObj(config));
+  log.debug(__inspectObj(config));
 
   try {
     __validateConfig(config);
@@ -248,6 +248,7 @@ var run = function(cmd, args, cwd)
   if (result.status !== 0) {
     log.debug(`Error running ${cmd} ${args.toString().replace(/,/g, " ")} @ cwd=${path.resolve(cwd)}: exited with ${result.status}`);
   }
+  return result || {};
 };
 
 /**
@@ -492,7 +493,9 @@ var distribute = function(argv)
   /*
    * Run electron builder
    */
-  run(builder, ["./dist"], argv.path);
+  var dist = run(builder, ["./dist"], argv.path);
+  if (dist.status !== 0)
+  {log.error(`electron-builder failed; see electron-builder documentation. Make sure your package.json file has everything it needs!`);}
 };
 
 /**
