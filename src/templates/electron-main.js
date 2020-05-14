@@ -20,9 +20,9 @@ function createWindow () {
   });
 
   var port = process.env.WEBPACK_DEV_SERVER_PORT || 9000;
-  var url = process.env.WEBPACK_DEV_SERVER_PORT  ?
+  var url = process.env.NODE_ENV == "production"  ?
     `http://localhost:${port}/renderer` : prodUrl;
-  console.log(`Loading URL @ ${url}`);
+  console.log(`Loading URL @ ${url} for environment=${process.env.NODE_ENV}`);
   win.loadURL(url);
 
 

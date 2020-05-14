@@ -1,7 +1,22 @@
 #!/usr/bin/env node
 
 /*
- * ewebpack.js
+ * electron-webpacker
+ * -------------------------------------------------
+ *
+ * A stupid simple solution for building Electron + Webpack applications.
+ *
+ * Provides quick mechanism to setup structure and configuration files
+ * needed to run. `init` will initialize a project structure using default
+ * settings. `build` will run `webpack-cli` passing in all args to build
+ * including the specified webpack.config.js file. `run` will run tool
+ * `webpack-dev-server` and `electron`. The server will start at
+ * http://localhost:9000/renderer and run electron dist/main.js
+ *
+ * You can configure the application using ewebpack.js file.
+ */
+/*
+ * main.js
  *
  * A toolkit and utility belt for managing a electron+webpack plugin.
  *
@@ -251,6 +266,8 @@ var run = function(cmd, args, cwd, stdio = "pipe", env = {})
 {
   var environment = Object.create(process.env);
   _.extend(environment, env);
+  log.debug(__inspectObj(environment));
+
   log.debug(`Run cmd: ${cmd} ${args.toString().replace(/,/g, " ")} @ cwd: ${cwd}`);
   const result = spawnSync(cmd, args, {cwd: path.resolve(cwd), stdio, env: environment, shell: true});
   if (result.status !== 0) {
@@ -599,22 +616,22 @@ var runElectronWebpack = function(argv)
   _.defaultsDeep(config, __BASE_CONFIG);
   log.debug(`${__CONFIG_FILE_NAME} loaded: ${__inspectObj(config)}`);
 
-  var webpackFile = path.resolve(argv.path, config.renderer.path, config.renderer["webpack-file"]);
-  var webpackConfig = __loadWebpackConfig(webpackFile);
-  log.debug(__inspectObj(webpackConfig));
+  var webpackRendererFile = path.resolve(argv.path, config.renderer.path, config.renderer["webpack-file"]);
+  var webpackRendererConfig = __loadWebpackConfig(webpackRendererFile);
+  log.debug(__inspectObj(webpackRendererConfig));
 
   var serverArgs = __buildWebpackCliArgs(
-    argv.path, config, webpackConfig, argv.environment, "electron-renderer",
-    "renderer.js", webpackFile, path.resolve(argv.path, config.renderer.path)
+    argv.path, config, webpackRendererConfig, argv.environment, "electron-renderer",
+    "renderer.js", webpackRendererFile, path.resolve(argv.path, config.renderer.path)
   );
 
-  if (_.has(webpackConfig, "devServer.port"))
+  if (_.has(webpackRendererConfig, "devServer.port"))
   {
-    argv.port = webpackConfig.devServer.port;
+    argv.port = webpackRendererConfig.devServer.port;
   }
   serverArgs.unshift(`--port=${argv.port}`);
 
-  var contentBase = _.has(webpackConfig, "devServer.contentBase") ? webpackConfig.contentBase : "./dist";
+  var contentBase = _.has(webpackRendererConfig, "devServer.contentBase") ? webpackRendererConfig.contentBase : "./dist";
   serverArgs.push(`--content-base=${contentBase}`);
 
   /*
@@ -628,15 +645,22 @@ var runElectronWebpack = function(argv)
   var env = Object.create(process.env);
   env.NODE_ENV = argv.environment;
   env.WEBPACK_DEV_SERVER_PORT = argv.port;
-
+  log.debug(__inspectObj(env));
   log.info(server);
+
   var dev = spawn(server, serverArgs, {
     stdio: "inherit",
     windowsHide: true
   });
 
-  var output = _.has(webpackConfig, "output.path") ? webpackConfig.output.path : "./dist";
-  var main = _.has(webpackConfig, "output.filename") ? webpackConfig.output.filename : "./main.js";
+  var webpackMainFile = path.resolve(argv.path, config.main.path, config.main["webpack-file"]);
+  var webpackMainConfig = __loadWebpackConfig(webpackMainFile);
+  log.debug(__inspectObj(webpackRendererConfig));
+
+  var output = _.has(webpackMainConfig, "output.path") ? webpackMainConfig.output.path : "./dist";
+  var main = _.has(webpackMainConfig, "output.filename") ? webpackMainConfig.output.filename : "./main.js";
+  log.debug(`Electron main file is ${main}`);
+  log.info(`Running webpack-dev-server for renderer process @ ${config.renderer.path}`);
   var elect = spawn(electron, [path.resolve(output, main)], {
     cwd: path.resolve(argv.path),
     stdio: "inherit",
