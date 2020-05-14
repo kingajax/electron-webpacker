@@ -113,7 +113,6 @@ var __validateConfig = function(config)
 var __before = function(argv)
 {
   log.level = argv.verbose ? "debug" : "info";
-  log.debug("Starting in verbose mode.");
 };
 
 /**
