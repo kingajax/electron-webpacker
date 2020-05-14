@@ -257,13 +257,13 @@ var run = function(cmd, args, cwd)
  * @param  {[type]} config [description]
  * @return {[type]}        [description]
  */
-var __loadWebpackConfig = function(p, config)
+var __loadWebpackConfig = function(context, p, filename)
 {
-  var file = path.resolve(p, config.main.path, config.main["webpack-file"]);
+  var file = path.resolve(context, p, filename);
   try {
     var config = require(file);
     if (_.isObject(config)) return config;
-  } catch (e) {log.warn(`Could not find ${config.main["webpack-file"]} @ ${config.main.path}`);}
+  } catch (e) {log.warn(`Could not find ${filename} @ ${p}`);}
   return {};
 };
 
@@ -285,12 +285,11 @@ var __loadWebpackConfig = function(p, config)
  * @param {string} p relative path to resolve all paths
  * @return {[type]} [description]
  */
-var __buildWebpackCliArgs = function(p, config, webpack, env = null, target)
+var __buildWebpackCliArgs = function(p, config, webpack, env, target, output, configFile)
 {
   var args = [];
 
   // add config file path; required arg
-  var configFile = path.resolve(p, config.main.path, config.main["webpack-file"]);
   args.push(`--config="${configFile}"`)
 
   // add entry file
@@ -319,7 +318,7 @@ var __buildWebpackCliArgs = function(p, config, webpack, env = null, target)
 
   // output filename
   if (!_.has(webpack, "output.filename")) {
-    args.push(`--output-filename="main.js"`);
+    args.push(`--output-filename="${output}"`);
   }
 
   return args;
@@ -403,7 +402,7 @@ var buildMain = async function(argv, config)
   if (!fs.existsSync(webpackFile) && !argv.force)
   {log.error(`Webpack file ${config.main["webpack-file"]} @ ${config.main.path} doesn't exist? Did you run 'epack init'. If you must, use --force=true as bypass. Use at own risk.?`); return;}
 
-  var webpackConfig = __loadWebpackConfig(argv.path, config);
+  var webpackConfig = __loadWebpackConfig(argv.path, config.main.path, config.main["webpack-file"]);
   log.debug(__inspectObj(webpackConfig));
 
   /*
@@ -419,7 +418,10 @@ var buildMain = async function(argv, config)
   {log.error("webpack-cli could not be found. Check path environment. Put webpack-cli on it."); return;}
 
   log.info(`Running webpack-cli for main process @ ${config.main.path}`);
-  var args = __buildWebpackCliArgs(argv.path, config, webpackConfig, argv.environment, "electron-main");
+  var args = __buildWebpackCliArgs(
+    argv.path, config, webpackConfig, argv.environment,
+    "electron-main", "main.js", webpackFile
+  );
   run(webpack, args, argv.path);
 };
 
@@ -440,7 +442,7 @@ var buildRenderer = function(argv, config)
   if (!fs.existsSync(webpackFile) && !argv.force)
   {log.error(`Webpack file ${config.renderer["webpack-file"]} @ ${config.renderer.path} doesn't exist? Did you run 'epack init'. If you must, use --force=true as bypass. Use at own risk.?`); return;}
 
-  var webpackConfig = __loadWebpackConfig(argv.path, config);
+  var webpackConfig = __loadWebpackConfig(argv.path, config.renderer.path, config.renderer["webpack-file"]);
   log.debug(__inspectObj(webpackConfig));
 
   /*
@@ -451,7 +453,10 @@ var buildRenderer = function(argv, config)
   {log.error("webpack-cli could not be found. Check path environment. Put webpack-cli on it."); return;}
 
   log.info(`Running webpack-cli for renderer process @ ${config.renderer.path}`);
-  var args = __buildWebpackCliArgs(argv.path, config, webpackConfig, argv.environment, "electron-main");
+  var args = __buildWebpackCliArgs(
+    argv.path, config, webpackConfig, argv.environment,
+    "electron-renderer", "renderer.js", webpackFile
+  );
   run(webpack, args, argv.path);
 };
 
