@@ -634,7 +634,7 @@ var runElectronWebpack = function(argv)
   });
 
   var output = _.has(webpackConfig, "output.path") ? webpackConfig.output.path : "./dist";
-  var main = _.has(webpackConfig, "entry") ? webpackConfig.entry : "./main.js";
+  var main = _.has(webpackConfig, "output.filename") ? webpackConfig.output.filename : "./main.js";
   var elect = spawn(electron, [path.resolve(output, main)], {
     cwd: path.resolve(argv.path),
     stdio: "inherit",
