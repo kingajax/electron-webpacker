@@ -12,6 +12,7 @@
   },
   "bin": {
     "electron-webpacker": "./src/main.js",
+    "epacker": "./src/main.js",
     "epack": "./src/main.js"
   }
 }
