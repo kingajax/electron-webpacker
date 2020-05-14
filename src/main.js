@@ -285,7 +285,7 @@ var __loadWebpackConfig = function(p, config)
  * @param {string} p relative path to resolve all paths
  * @return {[type]} [description]
  */
-var __buildWebpackCliArgs = function(p, config, webpack, env = null)
+var __buildWebpackCliArgs = function(p, config, webpack, env = null, target)
 {
   var args = [];
 
@@ -306,7 +306,7 @@ var __buildWebpackCliArgs = function(p, config, webpack, env = null)
 
   // set target environment
   if (!_.has(webpack, "target")) {
-    args.push(`--target="electron-main"`);
+    args.push(`--target="${target}"`);
   }
   else
   {log.warn(`Webpack-file contains target ${webpack.target}; This should be 'electron-main'; Hope you know what you're doing!`);}
@@ -337,22 +337,6 @@ var build = function(argv)
     argv.type = "all";
   }
 
-  if (argv.type == "main" || argv.type == "all")
-  {buildMain(argv);}
-
-  if (argv.type == "renderer" || argv.type == "all")
-  {buildRenderer(argv);}
-
-};
-
-/**
- * [description]
- * @param  {[type]} argv [description]
- * @return {[type]}      [description]
- */
-var buildMain = async function(argv)
-{
-  var cwd = path.resolve(argv.path);
   var config = {};
 
   /*
@@ -368,15 +352,11 @@ var buildMain = async function(argv)
     if (!argv.force) return;
   }
 
+  /*
+   * mixin default settings not overriding user configs
+   */
   _.defaultsDeep(config, __BASE_CONFIG);
   log.debug(`${__CONFIG_FILE_NAME} loaded: ${__inspectObj(config)}`);
-
-  var webpackFile = path.resolve(argv.path, config.main.path, config.main["webpack-file"]);
-  /*
-   * IS WEBPACK-FILE FOUND?
-   */
-  if (!fs.existsSync(webpackFile) && !argv.force)
-  {log.error(`Webpack file ${config.main["webpack-file"]} @ ${config.main.path} doesn't exist? Did you run 'epack init'. If you must, use --force=true as bypass. Use at own risk.?`); return;}
 
   /*
    * check if webpack-cli is installed;
@@ -387,7 +367,6 @@ var buildMain = async function(argv)
     log.warn("webpack-cli not found on environment path.");
     log.info("Installing webpack-cli:");
     run("npm", ["install", "webpack", "webpack-cli", "--save-dev"], argv.path);
-    webpack = isBinaryInstalled("webpack-cli", argv.path);
   }
 
   /*
@@ -396,11 +375,51 @@ var buildMain = async function(argv)
   if (!webpack)
   {log.warn("webpack-cli could not be found."); return;}
 
+  /*
+   * run main build
+   */
+  if (argv.type == "main" || argv.type == "all")
+  {buildMain(argv, config);}
+
+  /*
+   * run renderer build
+   */
+  if (argv.type == "renderer" || argv.type == "all")
+  {buildRenderer(argv, config);}
+
+};
+
+/**
+ * [description]
+ * @param  {[type]} argv [description]
+ * @return {[type]}      [description]
+ */
+var buildMain = async function(argv, config)
+{
+  var webpackFile = path.resolve(argv.path, config.main.path, config.main["webpack-file"]);
+  /*
+   * IS WEBPACK-FILE FOUND?
+   */
+  if (!fs.existsSync(webpackFile) && !argv.force)
+  {log.error(`Webpack file ${config.main["webpack-file"]} @ ${config.main.path} doesn't exist? Did you run 'epack init'. If you must, use --force=true as bypass. Use at own risk.?`); return;}
+
   var webpackConfig = __loadWebpackConfig(argv.path, config);
   log.debug(__inspectObj(webpackConfig));
 
+  /*
+   * check if webpack-cli is installed;
+   * install it if it does not existing
+   */
+
+  /*
+   * We installed webpack-cli? Check again!
+   */
+  var webpack = isBinaryInstalled("webpack-cli", argv.path);
+  if (!webpack)
+  {log.error("webpack-cli could not be found. Check path environment. Put webpack-cli on it."); return;}
+
   log.info(`Running webpack-cli for main process @ ${config.main.path}`);
-  var args = __buildWebpackCliArgs(argv.path, config, webpackConfig, argv.environment);
+  var args = __buildWebpackCliArgs(argv.path, config, webpackConfig, argv.environment, "electron-main");
   run(webpack, args, argv.path);
 };
 
@@ -411,9 +430,29 @@ var buildMain = async function(argv)
  * @param  {[type]} type [description]
  * @return {[type]}      [description]
  */
-var buildRenderer = function(argv)
+var buildRenderer = function(argv, config)
 {
-  log.warn("Almost implemented.");
+  var webpackFile = path.resolve(argv.path, config.renderer.path, config.renderer["webpack-file"]);
+
+  /*
+   * IS WEBPACK-FILE FOUND?
+   */
+  if (!fs.existsSync(webpackFile) && !argv.force)
+  {log.error(`Webpack file ${config.renderer["webpack-file"]} @ ${config.renderer.path} doesn't exist? Did you run 'epack init'. If you must, use --force=true as bypass. Use at own risk.?`); return;}
+
+  var webpackConfig = __loadWebpackConfig(argv.path, config);
+  log.debug(__inspectObj(webpackConfig));
+
+  /*
+   * We installed webpack-cli? Check again!
+   */
+  var webpack = isBinaryInstalled("webpack-cli", argv.path);
+  if (!webpack)
+  {log.error("webpack-cli could not be found. Check path environment. Put webpack-cli on it."); return;}
+
+  log.info(`Running webpack-cli for renderer process @ ${config.renderer.path}`);
+  var args = __buildWebpackCliArgs(argv.path, config, webpackConfig, argv.environment, "electron-main");
+  run(webpack, args, argv.path);
 };
 
 /**
