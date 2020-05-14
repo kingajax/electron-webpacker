@@ -170,7 +170,6 @@ var init = async function(argv)
   }
 
   log.debug("Loaded config: ", config);
-
   var paths = [config.main.path, config.renderer.path];
   for (let p of paths)
   {
@@ -245,10 +244,85 @@ var isBinaryInstalled = function(binary, p)
  */
 var run = function(cmd, args, cwd)
 {
+  log.debug(`Run cmd: ${cmd} ${args.toString().replace(/,/g, " ")} @ cwd: ${cwd}`);
   const result = spawnSync(cmd, args, {cwd: path.resolve(cwd), stdio: "inherit"});
   if (result.status !== 0) {
     log.debug(`Error running ${cmd} ${args.toString().replace(/,/g, " ")} @ cwd=${path.resolve(cwd)}: exited with ${result.status}`);
   }
+};
+
+/**
+ * [description]
+ * @param  {[type]} p      [description]
+ * @param  {[type]} config [description]
+ * @return {[type]}        [description]
+ */
+var __loadWebpackConfig = function(p, config)
+{
+  var file = path.resolve(p, config.main.path, config.main["webpack-file"]);
+  try {
+    var config = require(file);
+    if (_.isObject(config)) return config;
+  } catch (e) {log.warn(`Could not find ${config.main["webpack-file"]} @ ${config.main.path}`);}
+  return {};
+};
+
+/**
+ *
+ * Given a Webpack.config.js object; build the CLI args not to override
+ * any user defined settings.
+ *
+ *  note: webpack-cli at minimium must use these arguments
+ *    CLI args                                webpack key
+ *    --entry="{entry}" ->                    entry
+ *    --context="{dir}" ->                    context
+ *    --target="electron-main" ->             target
+ *    --mode="development" or "production" -> mode
+ *    --output-filename={output} ->           output.filenmae
+ *    --config="{webpack.config.js}" ->       [none]
+ *
+ * These settings may be override by webpack-file specified in ewebpack.json;
+ * @param {string} p relative path to resolve all paths
+ * @return {[type]} [description]
+ */
+var __buildWebpackCliArgs = function(p, config, webpack, env = null)
+{
+  var args = [];
+
+  // add config file path; required arg
+  var configFile = path.resolve(p, config.main.path, config.main["webpack-file"]);
+  args.push(`--config="${configFile}"`)
+
+  // add entry file
+  if (!_.has(webpack, "entry")) {
+    args.push(`--entry="./main.js"`);
+  }
+
+  // add context
+  var context = path.resolve(p, config.main.path);
+  if (!_.has(webpack, "context")) {
+    args.push(`--context=${context}`);
+  }
+
+  // set target environment
+  if (!_.has(webpack, "target")) {
+    args.push(`--target="electron-main"`);
+  }
+  else
+  {log.warn(`Webpack-file contains target ${webpack.target}; This should be 'electron-main'; Hope you know what you're doing!`);}
+
+  // set env
+  if(!_.has(webpack, "mode") && _.isString(env))
+  {
+    args.push(`--mode="${env}"`);
+  }
+
+  // output filename
+  if (!_.has(webpack, "output.filename")) {
+    args.push(`--output-filename="main.js"`);
+  }
+
+  return args;
 };
 
 var buildMain = async function(argv)
@@ -272,24 +346,37 @@ var buildMain = async function(argv)
   _.defaultsDeep(config, __BASE_CONFIG);
   log.debug(`${__CONFIG_FILE_NAME} loaded: ${__inspectObj(config)}`);
 
+  var webpackFile = path.resolve(argv.path, config.main.path, config.main["webpack-file"]);
+  /*
+   * IS WEBPACK-FILE FOUND?
+   */
+  if (!fs.existsSync(webpackFile))
+  {log.error(`Webpack file ${config.main["webpack-file"]} @ ${config.main.path} doesn't exist? Did you run 'epack init'?`); return;}
+
   /*
    * check if webpack-cli is installed;
    * install it if it does not existing
    */
-  log.info("Checking for webpack-cli on environment path.");
-
   var webpack = isBinaryInstalled("webpack-cli", argv.path);
   if (!webpack) {
-    log.warn("Installing webpack-cli:");
+    log.warn("webpack-cli not found on environment path.");
+    log.info("Installing webpack-cli:");
     run("npm", ["install", "webpack", "webpack-cli", "--save-dev"], argv.path);
     webpack = isBinaryInstalled("webpack-cli", argv.path);
   }
 
+  /*
+   * We installed webpack-cli? Check again!
+   */
   if (!webpack)
   {log.warn("webpack-cli could not be found."); return;}
 
+  var webpackConfig = __loadWebpackConfig(argv.path, config);
+  log.debug(__inspectObj(webpackConfig));
+
   log.info(`Running webpack-cli for main process @ ${config.main.path}`);
-  run(webpack, [], argv.path);
+  var args = __buildWebpackCliArgs(argv.path, config, webpackConfig);
+  run(webpack, args, argv.path);
 };
 
 /**
