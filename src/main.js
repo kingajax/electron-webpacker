@@ -469,7 +469,7 @@ var distribute = function(argv)
    * install it if it does not existing
    */
   var builder = isBinaryInstalled("electron-builder", argv.path);
-  if (!webpack) {
+  if (!builder) {
     log.warn("electron-builder not found on environment path.");
     log.info("Installing electron-builder:");
     run("npm", ["install", "electron-builder", "--save-dev"], argv.path);
