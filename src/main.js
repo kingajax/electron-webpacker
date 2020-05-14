@@ -496,12 +496,6 @@ var _yargBuildBuilder = function(y)
     default: ".",
     describe: "path or folder to initialize project."
   })
-  .option("override-webpack", {
-    default: false,
-    description: `Don't apply any default configuration to webpack.config.js
-     at build time; only use custom configuration specified in
-     webpack.config.js files.`
-  })
   .option("environment", {
     default: "development",
     description: "Set the runtime environment. Will be passed to Webpack and Electron when building or running."
@@ -555,7 +549,7 @@ yargs
    * build [type] [path] command
    */
   .command("build [type] [path]", "Build to dist/; config webpack-file location @ ewebpack.json; default is src/main/webpack.config.js.", _yargBuildBuilder, (argv) => {build(argv);})
-
+  .command("dist [path]", "Dist and build electron package.", () => {}, (argv) => {distribute();})
   /*
    * Add verbose loggining option
    */
