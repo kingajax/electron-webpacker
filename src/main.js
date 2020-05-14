@@ -559,7 +559,7 @@ var runElectronWebpack = function(argv)
    */
   var electron = isBinaryInstalled("electron", argv.path);
   if (!electron) {
-    log.warn("electron-builder not found on environment path.");
+    log.warn("electron not found on environment path.");
     log.info("Installing electron:");
     run("npm", ["install", "electron", "--save-dev"], argv.path, "inherit");
     electron = isBinaryInstalled("electron", argv.path);
