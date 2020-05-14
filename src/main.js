@@ -19,7 +19,7 @@
 const fs = require("fs");
 const path = require("path");
 const util = require("util");
-const {spawnSync} = require("child_process");
+const {spawn, spawnSync} = require("child_process");
 
 const yargs = require("yargs");
 const _ = require("lodash");
@@ -600,26 +600,48 @@ var runElectronWebpack = function(argv)
   var webpackConfig = __loadWebpackConfig(webpackFile);
   log.debug(__inspectObj(webpackConfig));
 
-
-  var args = __buildWebpackCliArgs(
+  var serverArgs = __buildWebpackCliArgs(
     argv.path, config, webpackConfig, argv.environment, "electron-renderer",
     "renderer.js", webpackFile, path.resolve(argv.path, config.renderer.path)
   );
 
-  if (!_.has(webpackConfig, "devServer.port"))
+  if (_.has(webpackConfig, "devServer.port"))
   {
-    args.push(`--port ${argv.port}`);
+    argv.port = webpackConfig.devServer.port;
   }
-  else
-  {argv.port = webpackConfig.devServer.port;}
+  serverArgs.unshift(`--port=${argv.port}`);
+
+  var contentBase = _.has(webpackConfig, "devServer.contentBase") ? webpackConfig.contentBase : "./dist";
+  serverArgs.push(`--content-base=${contentBase}`);
 
   /*
    * SPAWN webpack-dev-server & Electron
    */
+
+  log.debug(serverArgs);
   log.info(`Running webpack-dev-server for renderer process @ ${config.renderer.path}`);
   log.info(`Using port ${argv.port}`);
-  console.log(args);
 
+  var env = Object.create(process.env);
+  env.NODE_ENV = argv.environment;
+  env.WEBPACK_DEV_SERVER_PORT = argv.port;
+
+  log.info(server);
+  var dev = spawn(server, serverArgs, {
+    stdio: "inherit",
+  });
+
+  var output = _.has(webpackConfig, "output.path") ? webpackConfig.output.path : "./dist";
+  var main = _.has(webpackConfig, "entry") ? webpackConfig.entry : "./main.js";
+  var elect = spawn(electron, [path.resolve(output, main)], {
+    cwd: path.resolve(argv.path),
+    stdio: "inherit",
+    windowsHide: true,
+    env
+  });
+
+  dev.on("close", (c) => {log.warn(`webpack-dev-server quit with status ${c}`);});
+  elect.on("close", (c) => {log.warn(`electron quit with status ${c}`);});
 };
 
 /**
