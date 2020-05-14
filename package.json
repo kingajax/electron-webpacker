@@ -1,10 +1,7 @@
 {
-  "name": "ewebpack",
+  "name": "electron-webpacker",
   "version": "0.0.1",
-  "description": "Electron + Webpack toolkit. Provides commands to build, start and dist a electron + webpack application.",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "description": "A simple solution to building Electron + Webpack apps. Initialize a new project, build, run and distribute.",
   "author": "kingajax",
   "license": "GPL-3.0",
   "dependencies": {
@@ -14,7 +11,7 @@
     "yargs": "^15.3.1"
   },
   "bin": {
-    "ewebpack": "./src/main.js",
+    "electron-webpacker": "./src/main.js",
     "epack": "./src/main.js"
   }
 }
