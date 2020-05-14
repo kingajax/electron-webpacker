@@ -250,7 +250,7 @@ var isBinaryInstalled = function(binary, p)
 var run = function(cmd, args, cwd, stdio = "pipe", env = {})
 {
   log.debug(`Run cmd: ${cmd} ${args.toString().replace(/,/g, " ")} @ cwd: ${cwd}`);
-  const result = spawnSync(cmd, args, {cwd: path.resolve(cwd), stdio}, env);
+  const result = spawnSync(cmd, args, {cwd: path.resolve(cwd), stdio, env, shell: true});
   if (result.status !== 0) {
     log.debug(`Error running ${cmd} ${args.toString().replace(/,/g, " ")} @ cwd=${path.resolve(cwd)}: exited with ${result.status}`);
   }
