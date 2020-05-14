@@ -456,9 +456,33 @@ var buildRenderer = function(argv, config)
   run(webpack, args, argv.path);
 };
 
+/**
+ * Distribute the package.
+ *
+ * @param  {[type]} argv [description]
+ * @return {[type]}      [description]
+ */
 var distribute = function(argv)
 {
-  argv.all = true;
+  /*
+   * check if webpack-cli is installed;
+   * install it if it does not existing
+   */
+  var builder = isBinaryInstalled("electron-builder", argv.path);
+  if (!webpack) {
+    log.warn("electron-builder not found on environment path.");
+    log.info("Installing electron-builder:");
+    run("npm", ["install", "electron-builder", "--save-dev"], argv.path);
+    builder = isBinaryInstalled("electron-builder", argv.path);
+  }
+
+  if (!builder)
+  {log.error("electron-builder could not be found. Check path environment. Put electron-builder on it."); return;}
+
+  /*
+   * SET defaults for dist build
+   */
+  argv.type = "all";
   argv.environment = "production";
   build(argv);
 };
@@ -556,7 +580,7 @@ yargs
    * build [type] [path] command
    */
   .command("build [type] [path]", "Build to dist/; config webpack-file location @ ewebpack.json; default is src/main/webpack.config.js.", _yargBuildBuilder, (argv) => {build(argv);})
-  .command("dist [path]", "Dist and build electron package.", (y) => {return y.option("force", {description: "Force build.", default: false});}, (argv) => {distribute(argv);})
+  .command("dist [path]", "Dist and build electron package.", (y) => {return y.option("force", {description: "Force build.", default: false}).option("path", {description: "Path", default: "."});}, (argv) => {distribute(argv);})
   /*
    * Add verbose loggining option
    */
