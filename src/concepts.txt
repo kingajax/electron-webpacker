@@ -1,0 +1,37 @@
+Loading Webpack
+---------------
+1. Look for on %PATH% or $PATH for webpack-server
+2. Does webpack-cli exist?
+  I. Does not:
+    a. Ask to install webpack-cli?
+    b. Check again: Does it exist?
+      I. If not, warn and stop.
+    II. Proceed with CLI execution of command.
+
+NOTE: cli commands
+  For Main:
+  webpack-cli --target="electron-main" --output-filename="test.js"
+    --config=./src/main/webpack.config.js --context ./src/main/
+
+  For Renderer:
+  webpack-cli --target="electron-renderer" --output-filename="test.js"
+    --config=./src/renderer/webpack.config.js --context ./src/renderer/ ./src/renderer/renderer.js
+
+Loading webpack-dev-server
+--------------------------
+1. Look for on %PATH% or $PATH for webpack-server
+2. Does webpack-dev-server exist?
+  I. Does not:
+    a. Ask to install webpack-dev-server?
+    b. Check again: Does it exist?
+      I. If not, warn and stop.
+  II. Proceed with CLI execution.
+
+Loading Electron
+1. Look for on %PATH% or $PATH for electron
+2. Does electron exist?
+  I. Does not:
+    a. Ask to install electron?
+    b. Check again: Does it exist?
+      I. If not, warn and stop.
+  II. Proceed with CLI execution.
