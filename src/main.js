@@ -289,7 +289,7 @@ var __buildWebpackCliArgs = function(p, config, webpack, env, target, output, co
   var args = [];
 
   // add config file path; required arg
-  args.push(`--config="${configFile}"`)
+  args.push(`--config="${configFile}"`);
 
   // add entry file
   if (!_.has(webpack, "entry")) {
@@ -368,12 +368,6 @@ var build = function(argv)
   }
 
   /*
-   * We installed webpack-cli? Check again!
-   */
-  if (!webpack)
-  {log.warn("webpack-cli could not be found."); return;}
-
-  /*
    * run main build
    */
   if (argv.type == "main" || argv.type == "all")
@@ -415,6 +409,7 @@ var buildMain = async function(argv, config)
    * We installed webpack-cli? Check again!
    */
   var webpack = isBinaryInstalled("webpack-cli", argv.path);
+  log.info(webpack);
   if (!webpack)
   {log.error("webpack-cli could not be found. Check path environment. Put webpack-cli on it."); return;}
 
