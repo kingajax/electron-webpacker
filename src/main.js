@@ -374,8 +374,6 @@ var build = function(argv)
   if (argv.type == "main" || argv.type == "all")
   {buildMain(argv, config);}
 
-  console.log("\n");
-
   /*
    * run renderer build
    */
