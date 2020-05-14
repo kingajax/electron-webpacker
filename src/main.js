@@ -456,6 +456,13 @@ var buildRenderer = function(argv, config)
   run(webpack, args, argv.path);
 };
 
+var distribute = function(argv)
+{
+  argv.all = true;
+  argv.environment = "production";
+  build(argv);
+};
+
 /**
  * yargBuilder callback; helps setup command args in yargs
  *
@@ -549,7 +556,7 @@ yargs
    * build [type] [path] command
    */
   .command("build [type] [path]", "Build to dist/; config webpack-file location @ ewebpack.json; default is src/main/webpack.config.js.", _yargBuildBuilder, (argv) => {build(argv);})
-  .command("dist [path]", "Dist and build electron package.", () => {}, (argv) => {distribute();})
+  .command("dist [path]", "Dist and build electron package.", (y) => {return y.option("force", {description: "Force build.", default: false});}, (argv) => {distribute(argv);})
   /*
    * Add verbose loggining option
    */
