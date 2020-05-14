@@ -312,12 +312,17 @@ var __buildWebpackCliArgs = function(p, config, webpack, env, target, output, co
     args.push(`--target="${target}"`);
   }
   else
-  {log.warn(`Webpack-file contains target ${webpack.target}; This should be 'electron-main'; Hope you know what you're doing!`);}
+  {log.warn(`Webpack-file contains target ${webpack.target}; This should be 'electron-main' or 'electron-renderer'; Hope you know what you're doing!`);}
 
   // set env
   if(!_.has(webpack, "mode") && _.isString(env))
   {
     args.push(`--mode="${env}"`);
+  }
+
+  // output filename
+  if (!_.has(webpack, "output.path")) {
+    args.push(`--output-path="./dist"`);
   }
 
   // output filename
@@ -466,6 +471,8 @@ var buildRenderer = function(argv, config)
  */
 var distribute = function(argv)
 {
+  var config = {};
+
   /*
    * SET defaults for dist build
    */
@@ -490,11 +497,109 @@ var distribute = function(argv)
   {log.error("electron-builder could not be found. Check path environment. Put electron-builder on it."); return;}
 
   /*
+   * Load ewebpack.json; extend settings with user defined:
+   *  Catch: When the file fails to load, stop the program.
+   *  Override with --force=true to run with defaults
+   */
+  try {
+    config = __getConfig(argv.path);
+  } catch (e)
+  {
+    log.warn(`Use --force=true to override; reverts to default ewebpack.json configuation. See documentation.`);
+    if (!argv.force) return;
+  }
+
+  /*
+   * mixin default settings not overriding user configs
+   */
+  _.defaultsDeep(config, __BASE_CONFIG);
+  log.debug(`${__CONFIG_FILE_NAME} loaded: ${__inspectObj(config)}`);
+
+  var webpackConfig = __loadWebpackConfig(argv.path, config.renderer.path, config.renderer["webpack-file"]);
+  log.debug(__inspectObj(webpackConfig));
+
+  /*
    * Run electron builder
    */
-  var dist = run(builder, ["./dist"], argv.path, "inherit");
+  var output = _.has(webpackConfig, "output.path") ? webpackConfig.output.path : "./dist";
+  log.info(`Running electron-builder @ ${output}`);
+  var dist = run(builder, [output], argv.path, "inherit");
   if (dist.status !== 0)
   {log.error(`electron-builder failed; see electron-builder documentation. Make sure your package.json file has everything it needs!`);}
+};
+
+/**
+ * [description]
+ *
+ *
+ * @return {[type]} [description]
+ */
+var runElectronWebpack = function(argv)
+{
+  // if we are running for production, we must build both main and renderer
+  argv.type = argv.environment == "production" ? "all" : "main"
+
+  // build webpack-cli
+  build(argv);
+
+  /*
+   * We need to run Electron as a background job.
+   */
+  var server = isBinaryInstalled("webpack-dev-server", argv.path);
+  if (!server) {
+    log.warn("webpack-dev-server not found on environment path.");
+    log.info("Installing webpack-dev-server:");
+    run("npm", ["install", "webpack-dev-server", "--save-dev"], argv.path, "inherit");
+    server = isBinaryInstalled("webpack-dev-server", argv.path);
+  }
+
+  /*
+   * We need to run Electron as a background job.
+   */
+  var electron = isBinaryInstalled("electron", argv.path);
+  if (!electron) {
+    log.warn("electron-builder not found on environment path.");
+    log.info("Installing electron:");
+    run("npm", ["install", "electron", "--save-dev"], argv.path, "inherit");
+    electron = isBinaryInstalled("electron", argv.path);
+  }
+
+  /*
+   * ENSURE DEPS INSTALLED?
+   */
+  // is webpack-dev-server installed?
+  if (!server)
+  {log.error("webpack-dev-server could not be found. Check path environment. Put webpack-dev-server on it."); return;}
+
+  // is electron installed?
+  if (!electron)
+  {log.error("electron could not be found. Check path environment. Put electron on it."); return;}
+
+  var config = {};
+
+  /*
+   * Load ewebpack.json; extend settings with user defined:
+   *  Catch: When the file fails to load, stop the program.
+   *  Override with --force=true to run with defaults
+   */
+  try {
+    config = __getConfig(argv.path);
+  } catch (e)
+  {
+    log.warn(`Use --force=true to override; reverts to default ewebpack.json configuation. See documentation.`);
+    if (!argv.force) return;
+  }
+
+  /*
+   * mixin default settings not overriding user configs
+   */
+  _.defaultsDeep(config, __BASE_CONFIG);
+  log.debug(`${__CONFIG_FILE_NAME} loaded: ${__inspectObj(config)}`);
+
+  /*
+   * SPAWN webpack-dev-server & Electron
+   */
+  log.info(`Using port ${argv.port}`);
 };
 
 /**
@@ -590,7 +695,16 @@ yargs
    * build [type] [path] command
    */
   .command("build [type] [path]", "Build to dist/; config webpack-file location @ ewebpack.json; default is src/main/webpack.config.js.", _yargBuildBuilder, (argv) => {build(argv);})
+
+  /*
+   *
+   */
   .command(["dist [path]", "distribute"], "Dist and build electron package.", (y) => {return y.option("force", {description: "Force build.", default: false}).option("path", {description: "Path", default: "."});}, (argv) => {distribute(argv);})
+
+  /*
+   *
+   */
+  .command(["run [path]", "r", "start"], "Run Electron Webpack application.", (y) => {return y.option("port", {description: "Webpack dev server port.", default: 9000}).option("force", {description: "Force build.", default: false}).option("environment", {description: "Environment passed to Electron", default: "development"}).option("path", {description: "Path", default: "."});}, (argv) => {runElectronWebpack(argv)})
   /*
    * Add verbose loggining option
    */
