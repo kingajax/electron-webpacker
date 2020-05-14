@@ -1,6 +1,6 @@
-const {app, BrowserWindow} = require('electron');
+const { app, BrowserWindow } = require('electron');
 const path = require("path");
-const {format} = require('url');
+const { format } = require('url');
 
 
 function createWindow () {
@@ -20,9 +20,10 @@ function createWindow () {
   });
 
   var port = process.env.WEBPACK_DEV_SERVER_PORT || 9000;
-  win.loadURL(process.env.NODE_ENV == "development" ?
-    `http://localhost:${port}/renderer` : prodUrl
-  );
+  var url = process.env.NODE_ENV == "development" ?
+    `http://localhost:${port}/renderer` : prodUrl;
+  console.log(`Loading URL @ ${url}`);
+  win.loadURL(url);
 
 
   // Open the DevTools.
