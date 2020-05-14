@@ -325,6 +325,31 @@ var __buildWebpackCliArgs = function(p, config, webpack, env = null)
   return args;
 };
 
+/**
+ * [description]
+ * @return {[type]} [description]
+ */
+var build = function(argv)
+{
+
+  if (["main", "renderer", "all"].indexOf(argv.type) == -1) {
+    argv.path = argv.type;
+    argv.type = "all";
+  }
+
+  if (argv.type == "main" || argv.type == "all")
+  {buildMain(argv);}
+
+  if (argv.type == "renderer" || argv.type == "all")
+  {buildRenderer(argv);}
+
+};
+
+/**
+ * [description]
+ * @param  {[type]} argv [description]
+ * @return {[type]}      [description]
+ */
 var buildMain = async function(argv)
 {
   var cwd = path.resolve(argv.path);
@@ -350,8 +375,8 @@ var buildMain = async function(argv)
   /*
    * IS WEBPACK-FILE FOUND?
    */
-  if (!fs.existsSync(webpackFile))
-  {log.error(`Webpack file ${config.main["webpack-file"]} @ ${config.main.path} doesn't exist? Did you run 'epack init'?`); return;}
+  if (!fs.existsSync(webpackFile) && !argv.force)
+  {log.error(`Webpack file ${config.main["webpack-file"]} @ ${config.main.path} doesn't exist? Did you run 'epack init'. If you must, use --force=true as bypass. Use at own risk.?`); return;}
 
   /*
    * check if webpack-cli is installed;
@@ -375,7 +400,7 @@ var buildMain = async function(argv)
   log.debug(__inspectObj(webpackConfig));
 
   log.info(`Running webpack-cli for main process @ ${config.main.path}`);
-  var args = __buildWebpackCliArgs(argv.path, config, webpackConfig);
+  var args = __buildWebpackCliArgs(argv.path, config, webpackConfig, argv.environment);
   run(webpack, args, argv.path);
 };
 
@@ -388,7 +413,7 @@ var buildMain = async function(argv)
  */
 var buildRenderer = function(argv)
 {
-  log.warn("Not implemented.");
+  log.warn("Almost implemented.");
 };
 
 /**
@@ -421,7 +446,12 @@ var _yargInitBuilder = function(y)
  */
 var _yargBuildBuilder = function(y)
 {
-  return y.positional("path", {
+  return y.positional("type", {
+    type: "string",
+    default: "all",
+    describe: "Build type: main or renderer"
+  })
+  .positional("path", {
     type: "string",
     default: ".",
     describe: "path or folder to initialize project."
@@ -439,17 +469,8 @@ var _yargBuildBuilder = function(y)
   .option("force", {
     default: false,
     description: "Force build process. Overwriting files as necessary."
-  })
-  .default("path", ".");
+  });
 };
-
-var buildMainNote = "Build to dist/ directory or output directory specified "
-  .concat("inside webpack.config.js for Electron main process. Configure webpack.config.js location for ")
-  .concat("main process in ewebpack.json. Note: Some base configurartions are applied ")
-  .concat("to Webpack as necessary to run. If you want to keep this configuration to a minimal ")
-  .concat(" use --override-webpack.");
-
-var buildRendererNote = "";
 
 /*
  * SETUP YARGS CLI interface
@@ -493,9 +514,7 @@ yargs
   /*
    * build [type] [path] command
    */
-  .command("build [path]", "Runs build process for Electron main and renderer process. See build:main, build:renderer below.", _yargBuildBuilder, (argv) => {buildMain(argv); buildRenderer(argv);})
-  .command("build:main [path]", buildMainNote, _yargBuildBuilder, (argv) => buildMain(argv))
-  .command("build:renderer [path]", buildRendererNote, _yargBuildBuilder, (argv) => buildRenderer(argv))
+  .command("build [type] [path]", "Build to dist/; config webpack-file location @ ewebpack.json; default is src/main/webpack.config.js.", _yargBuildBuilder, (argv) => {build(argv);})
 
   /*
    * Add verbose loggining option
