@@ -1,4 +1,5 @@
 # Electron-Webpacker (epack for short)
+
 Electron-Webpacker, or `epack` for short, is a lightweight build tool for Electron + Webpack projects. A toolkit that helps you setup and run Electron + Webpack projects fast removing all the unecessary infastructure you'd do manually.
 
 In a nutshell it does these three things
@@ -21,10 +22,12 @@ It's really just a build tool. At any time you can stop using Epack and still ha
 working project.
 
 # Getting started
+
 Before using the `electron-webpacker` or the aliases `epacker` or `epack` (all do the same thing) commands you must install Epack.
 
 
 ## Install
+
 Epack is on NPM. You can install it using the command below.
 
 ````bash
@@ -37,6 +40,7 @@ npm install electron-webpacker
 ````
 
 # Documentation
+
 Epack is very lightweight. It's entire purpose is helping speed up the build and run process of
 Electron + Webpack applications. We all know getting the work done is the best part not getting
 caught up in the process of setup and scripts.
