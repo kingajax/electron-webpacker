@@ -117,7 +117,7 @@ Webpack config. The configuration is inside the output object `{output: {}}`
 
 **ewebpack.json**
 This is the configuration file that Epack creates to keep track of where your
-Webpack configuration files are for Electron's main and renderer processes. If you use the default standard directory structure (shown above), Epack will find these automatically. If you don't use the standard structure you will need to tell Epack how your project is configured. When running `epack init` Epack will use an existing `ewwebpack.json` to initialize your project creating and laying out the directory
+Webpack configuration files are for Electron's main and renderer processes. If you use the default standard directory structure (shown above), Epack will find these automatically. If you don't use the standard structure you will need to tell Epack how your project is configured. When running `epack init` Epack will use an existing `ewebpack.json` to initialize your project creating and laying out the directory
 structure you specify.
 
 ### When I use init, what is inside the webpack.config.js Epack generates for me?
