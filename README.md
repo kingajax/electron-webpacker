@@ -45,9 +45,8 @@ Epack is very lightweight. It's entire purpose is helping speed up the build and
 Electron + Webpack applications. We all know getting the work done is the best part not getting
 caught up in the process of setup and scripts.
 
-Adding Webpack to your Electron app adds a task to your build process and complicates a bit. When starting
-your Electron app you must make sure your code has been compiled by Webpack and is built and ready to
-run.
+Adding Webpack to any project especially your Electron app adds a build step to your already existing build process further complicating it a bit. When starting your Electron app you must make sure your code has been compiled by Webpack and is built and ready to run. These are tasks you'd normally
+do manually. Or clutter up your npm scripts with many commands.
 
 Epack can help with that--saving you time.
 
