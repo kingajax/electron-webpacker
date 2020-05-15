@@ -380,11 +380,11 @@ module.exports = {
 # Support
 
 If you have any problems with `epack` be sure to create an issue. Remember you can
-run Epack is debug mode by adding `--verbose` to any command. This should provide more inforation
-about what's going on.
+run Epack in debug mode by adding `--verbose` to any command. This should provide more inforation
+about what's going on. You will got a lot of information dumped back at you.
 
-Most Epack related issues deal with Epack not finding the dependencies it relies on
-to do the work. This means the various CLI tools it runs. Make sure these are installed and
+Most Epack related issues deal with Epack not finding the dependencies (CLI tools) it relies on
+to do most of the work. This means the various CLI tools it runs. Make sure these are installed and
 available on the path environment.
 
 Happy Electron + Webpack dev.
