@@ -194,7 +194,7 @@ a boiler plate repo or download a quick start zip or maybe you manually put the 
 the right spot. With Epack, no need for all that non-sense, it's easy to get a base project started quick. Epack loads
 a boiler plate setup into your project to help get you going fast and does the tedious part for you.
 
-Run the command below in a project folder to initialize it as an Epack project.
+Run the `init` `i` or `initialize` command below in a project folder to initialize it as an Epack project.
 `````bash
 epack init
 `````
@@ -229,7 +229,7 @@ info: Writing webpack.config.js files @ src/main src/renderer
 
 ## Build
 
-The build command helps build your Webpack files for Electron's main and renderer process. It
+The `build` or `b` command helps build your Webpack files for Electron's main and renderer process. It
 will load in the webpack.config.js files (or the files specified in ewebpack.json, see ewebpack.json).
 Then, it passes your Webpack config to `webpack-cli` building your source (starting at entry point)
 into the configured 'dist/' folder. e.g., dist/main.js and dist/renderer.js
@@ -249,7 +249,7 @@ For example, running in project-folder:
 epack build
 ````
 
-yeilds the output,
+yields the output,
 
 ````bash
 ➜  project epack build
@@ -278,7 +278,7 @@ Entrypoint null = renderer.js
 
 ## Run
 
-The run command is a charm. This is the one you've been waiting for. The big shabooski. It uses `webpack-dev-server`
+The `run` or `r` or `start` command is a charm. This is the one that saves you a lot of time.  It uses `webpack-dev-server`
 and `electron` CLI. It will run those CLI tools to pack up your Webpack main and renderer process. Then,
 it runs `webpack-dev-server` to startup your Electron renderer process and runs `electron [src-folder]` to start
 Electron. Put simply, it just starts your app and loads up the Electron window with your renderer process. It takes
@@ -353,7 +353,7 @@ Entrypoint null = renderer.js
 
 ## Distribute
 
-The dist command help you package up your application when you're ready to build for a targeted platform. It
+The `dist` or `distribute` or `d` commands help you package up your application when you're ready to build for a targeted platform. It
 uses `electron-builder` behind the scenes. Make sure you have a proper package.json file and follow the Documentation
 required for Electron-builder.
 
