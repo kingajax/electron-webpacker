@@ -26,13 +26,15 @@ Before using the `electron-webpacker` or the aliases `epacker` or `epack` (all d
 
 ## Install
 Epack is on NPM. You can install it using the command below.
-`bash
+
+````bash
 npm install electron-webpacker -g
-`
+````
+
 or locally in the current project
-`bash
+````bash
 npm install electron-webpacker
-`
+````
 
 # Documentation
 Epack is very lightweight. It's entire purpose is helping speed up the build and run process of
@@ -59,7 +61,7 @@ configuration files are using ewebpack.json configuration file (see below)
 
 The standard project structure Epack configures using `epack init .` is:
 
-`bash
+````bash
 
   Project/
   |
@@ -81,7 +83,9 @@ The standard project structure Epack configures using `epack init .` is:
   |    |— — renderer.js
   |
   |— — ewebpack.json
-`
+
+
+````
 
 Add Webpack config settings for the Electron main and renderer process in the webpack.config.js file.
 Epack will see any settings you add here and pass it on to Webpack.
@@ -93,15 +97,15 @@ the right spot. With Epack it's easy to get a base project started quick. Epack 
 a boiler plate setup into your project to help get you going fast and does the tedious part for you.
 
 Run the command below in a project folder to initialize it as an Epack project.
-`bash
+`````bash
 epack init
-`
+`````
 
 or
 
-`bash
+````bash
 epack init ../any-folder
-`
+````
 
 By default, `epack init` will use the current folder '.' to initialize the project.
 
@@ -112,14 +116,15 @@ will load in the webpack.config.js files (or the files specified in ewebpack.jso
 Then, it passes your Webpack config to `webpack-cli` building your source (starting at entry point)
 into the configured 'dist' folder. e.g., dist/main.js and dist/renderer.js
 
-`bash
+`````bash
 epack build
-`
+`````
 or
 
-`bash
+````bash
 epack build ../any-folder
-`
+````
+
 ## Run
 
 The run command is a charm. This is the one you've been waiting for. The big shabooski. It uses `webpack-dev-server`
@@ -128,15 +133,15 @@ it runs `webpack-dev-server` to startup your Electron renderer process and runs 
 Electron. Put simply, it just starts your app and loads up the Electron window with your renderer process. It takes
 advantage of hot module reload (HMR) to dynamic reload your renderer.js process while you work in real time.
 
-`bash
+````bash
 epack run
-`
+````
 
 or
 
-`bash
+````bash
 epack run ../any-folder/
-`
+````
 
 ## Distribute
 
@@ -146,24 +151,24 @@ required for Electron-builder.
 
 It will use `webpack-cli` to load your Webpack configuration files and build them in production mode.
 
-`bash
+````bash
 epack dist
-`
+````
 
 or
 
-`bash
+````bash
 epack dist ../any-folder
-`
+````
 
 ## MISC
 
 Add `--verbose` to any command to add additional logging. Useful for tracking down issues with Epack before posting
 an issue or asking for help.
 
-`bash
+````bash
 epack init --verbose
-`
+````
 
 You can run `--version` to get the version or `--help` if you're unsure about the commands to run.
 
@@ -174,7 +179,7 @@ can't find it, it will use the defaults build into it and write the file for you
 in this file at anytime. If you use the standard Epack folder structure you don't need the ewebpack.json file
 and can delete it.
 
-`json
+````json
 {
   "main": {
     "path": "src/main",
@@ -185,7 +190,8 @@ and can delete it.
     "webpack-file": "webpack.config.js"
   }
 }
-`
+````
+
 ### main
 
 `path` The path where your Webpack config file exists for the Electron main process.
