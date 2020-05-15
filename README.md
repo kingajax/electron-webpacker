@@ -71,17 +71,17 @@ The standard project structure Epack configures using `epack init .` is:
 
 ````bash
   .
-  ├── src
-  │   ├── main
-  │   │   ├── main.js
-  │   │   └── webpack.config.js
-  │   └── renderer
-  │       ├── main.js
-  │       └── webpack.config.js
-  ├── dist
-  │   ├── main.js
-  │   └── renderer.js
-  └── ewebpack.json
+  ├─ src
+  │   ├─ main
+  │   │  ├─ main.js
+  │   │  └─ webpack.config.js
+  │   └──renderer
+  │      ├─ main.js
+  │      └─ webpack.config.js
+  ├─ dist
+  │  ├─ main.js
+  │  └─ renderer.js
+  └─ ewebpack.json
 
 ````
 
