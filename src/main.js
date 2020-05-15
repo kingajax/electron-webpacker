@@ -616,47 +616,58 @@ var runElectronWebpack = function(argv)
   _.defaultsDeep(config, __BASE_CONFIG);
   log.debug(`${__CONFIG_FILE_NAME} loaded: ${__inspectObj(config)}`);
 
-  var webpackRendererFile = path.resolve(argv.path, config.renderer.path, config.renderer["webpack-file"]);
-  var webpackRendererConfig = __loadWebpackConfig(webpackRendererFile);
-  log.debug(__inspectObj(webpackRendererConfig));
-
-  var serverArgs = __buildWebpackCliArgs(
-    argv.path, config, webpackRendererConfig, argv.environment, "electron-renderer",
-    "renderer.js", webpackRendererFile, path.resolve(argv.path, config.renderer.path)
-  );
-
-  if (_.has(webpackRendererConfig, "devServer.port"))
-  {
-    argv.port = webpackRendererConfig.devServer.port;
-  }
-  serverArgs.unshift(`--port=${argv.port}`);
-
-  var contentBase = _.has(webpackRendererConfig, "devServer.contentBase") ? webpackRendererConfig.contentBase : "./dist";
-  serverArgs.push(`--content-base=${contentBase}`);
-
   /*
-   * SPAWN webpack-dev-server & Electron
+   * prepare environment variables for Electron and webpack-dev-server
    */
-
-  log.debug(serverArgs);
-  log.info(`Running webpack-dev-server for renderer process @ ${config.renderer.path}`);
-  log.info(`Using port ${argv.port}`);
-
   var env = Object.create(process.env);
   env.NODE_ENV = argv.environment;
-  env.WEBPACK_DEV_SERVER_PORT = argv.port;
-  env.WEBPACK_DEV_SERVER_PATH = _.has(webpackRendererConfig, "output.filename") ? webpackRendererConfig.output.filename.slice(0, -3) : "renderer";
-  log.debug(__inspectObj(env));
-  log.info(server);
 
-  var dev = spawn(server, serverArgs, {
-    stdio: "inherit",
-    windowsHide: true
-  });
+  /*
+   * Don't run webpack-dev-server in production
+   */
+  var dev;
+  if (argv.environment != "production")
+  {
+    var webpackRendererFile = path.resolve(argv.path, config.renderer.path, config.renderer["webpack-file"]);
+    var webpackRendererConfig = __loadWebpackConfig(webpackRendererFile);
+    log.debug(__inspectObj(webpackRendererConfig));
+    env.WEBPACK_DEV_SERVER_PORT = argv.port;
+    env.WEBPACK_DEV_SERVER_PATH = _.has(webpackRendererConfig, "output.filename") ? webpackRendererConfig.output.filename.slice(0, -3) : "renderer";
+
+    var serverArgs = __buildWebpackCliArgs(
+      argv.path, config, webpackRendererConfig, argv.environment, "electron-renderer",
+      "renderer.js", webpackRendererFile, path.resolve(argv.path, config.renderer.path)
+    );
+
+    if (_.has(webpackRendererConfig, "devServer.port"))
+    {
+      argv.port = webpackRendererConfig.devServer.port;
+    }
+    serverArgs.unshift(`--port=${argv.port}`);
+
+    var contentBase = _.has(webpackRendererConfig, "devServer.contentBase") ? webpackRendererConfig.contentBase : "./dist";
+    serverArgs.push(`--content-base=${contentBase}`);
+
+    /*
+     * SPAWN webpack-dev-server & Electron
+     */
+
+    log.debug(serverArgs);
+    log.info(`Running webpack-dev-server for renderer process @ ${config.renderer.path}`);
+    log.info(`Using port ${argv.port}`);
+
+    log.debug(__inspectObj(env));
+    log.info(server);
+
+    dev = spawn(server, serverArgs, {
+      stdio: "inherit",
+      windowsHide: true
+    });
+  }
 
   var webpackMainFile = path.resolve(argv.path, config.main.path, config.main["webpack-file"]);
   var webpackMainConfig = __loadWebpackConfig(webpackMainFile);
-  log.debug(__inspectObj(webpackRendererConfig));
+  log.debug(__inspectObj(webpackMainConfig));
 
   var output = _.has(webpackMainConfig, "output.path") ? webpackMainConfig.output.path : "./dist";
   var main = _.has(webpackMainConfig, "output.filename") ? webpackMainConfig.output.filename : "./main.js";
@@ -669,8 +680,15 @@ var runElectronWebpack = function(argv)
     env
   });
 
-  dev.on("close", (c) => {log.warn(`webpack-dev-server quit with status ${c}`); elect.kill("SIGTERM");});
-  elect.on("close", (c) => {log.warn(`electron quit with status ${c}`); dev.kill("SIGTERM");});
+  /*
+   * Handle closing of both webpack-dev-server + electron
+   */
+  if (dev) {
+    dev.on("close", (c) => {log.warn(`webpack-dev-server quit with status ${c}`); elect.kill("SIGTERM");});
+  }
+  elect.on("close", (c) => {
+    log.warn(`electron quit with status ${c}`); if (dev) {dev.kill("SIGTERM");}
+  });
 };
 
 /**
