@@ -331,6 +331,52 @@ If Epack can't find these files, it can't do it's work proerly. At a bare minimu
 must configure these paths properly. It will try to use the defaults if no ewebpack.json file
 exists in the current project.
 
+# How to configure Webpack?
+
+Epack is simple stupid. It's main purpose is to be lightweight and run fast. It's only
+job is running the tools you need to get the job done. This is many of the already existing
+cli tools such as `electron` `webpack-cli` `webpack-dev-server`. It passes your Webpack
+config files onto these tools.
+
+You configure Webpack as you would any other Webpack project. Your Webpack-file,
+usually referered to as webpack.config.js, can be configured with every configuration
+option available. Refer to the Webpack [configuration](https://webpack.js.org/configuration/) documentation
+for more information on how to configure Webpack.
+
+For example,
+
+If you'd like to change the Webpack entry file for your Electron main process
+open src/main/webpack.config (if you're following the standard folder structure, otherwise open your webpack file for your Electron main process).
+
+Add the setting below to your Webpack file to modify the entry point.
+
+```javascript
+module.exports = {
+  /*
+   * This is just a webpack.config.js file see documentation for
+   * configuration of Webpack.
+   *
+   * Below is the default options automatically applied when running
+   *  `epack build`
+   *
+   * You can override any of the settings below. Settings defined below takes
+   * preceedance. If these defaults aren't disired, simply change them.
+   *
+   */
+  entry: "./main.js",
+  // context: path.resolve(__dirname),
+  // target: "electron-main",
+  // mode: "development",
+  // output: {
+  //   filename: "./main.js"
+  // },
+  // node: {
+  //   __dirname: false,
+  //   __filename: false
+  // }
+};
+```
+
 # Support
 
 If you have any problems with `epack` be sure to create an issue. Remember you can
