@@ -294,8 +294,8 @@ You can run `--version` to get the version or `--help` if you're unsure about th
 ## ewebpack.json (configuration)
 
 Epack uses a configuration file to find what it needs to run, build, and distribute your project properly. If it
-can't find it, it will use the defaults build into it and write the file for you. You can change the settings
-in this file at anytime. If you use the standard Epack folder structure you don't need the ewebpack.json file
+can't find it, it will use the defaults built into it and write the file to the current folder. You can change the settings
+in this file at anytime. If you use the standard Epack folder structure, you won't need the ewebpack.json file
 and can delete it.
 
 ````json
@@ -321,13 +321,13 @@ The default value is webpack.config.js
 
 ### renderer
 
-`path` The path where your Webpack config file exists for the Electron main process.
+`path` The path where your Webpack config file exists for the Electron renderer process.
 The default value is src/renderer
 
-`webpack-file` The name of the Webpack config file to load for the Electron main.
+`webpack-file` The name of the Webpack config file to load for the Electron renderer.
 The default value is webpack.config.js
 
-If Epack can't find these files, it can't do it's work proerly. At a bare minimal you
+If Epack can't find these files, it can't do it's work proerly. At a bare minimum, you
 must configure these paths properly. It will try to use the defaults if no ewebpack.json file
 exists in the current project.
 
