@@ -1,6 +1,6 @@
 # Electron-Webpacker (epack for short)
 
-Electron-Webpacker, or `epack` for short, is a lightweight build tool for Electron + Webpack projects. A toolkit that helps you setup and run Electron + Webpack projects fast removing all the unecessary infastructure you'd do manually.
+Electron-Webpacker, or `epack` for short, is a lightweight build tool for Electron + Webpack projects. A toolkit that helps you setup and run Electron + Webpack projects fast removing all the unnecessary infrastructure you'd do manually.
 
 In a nutshell it does these three things
 
@@ -143,7 +143,7 @@ info: Writing webpack.config.js files @ src/main src/renderer
 The build command helps build your Webpack files for Electron's main and renderer process. It
 will load in the webpack.config.js files (or the files specified in ewebpack.json, see ewebpack.json).
 Then, it passes your Webpack config to `webpack-cli` building your source (starting at entry point)
-into the configured 'dist' folder. e.g., dist/main.js and dist/renderer.js
+into the configured 'dist/' folder. e.g., dist/main.js and dist/renderer.js
 
 `````bash
 epack build
@@ -193,7 +193,7 @@ The run command is a charm. This is the one you've been waiting for. The big sha
 and `electron` CLI. It will run those CLI tools to pack up your Webpack main and renderer process. Then,
 it runs `webpack-dev-server` to startup your Electron renderer process and runs `electron [src-folder]` to start
 Electron. Put simply, it just starts your app and loads up the Electron window with your renderer process. It takes
-advantage of hot module reload (HMR) to dynamic reload your renderer.js process while you work in real time.
+advantage of hot-module-reload architecture (HMR) to dynamically reload your renderer.js process while you work in real time.
 
 ````bash
 epack run
