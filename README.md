@@ -100,8 +100,9 @@ Epack will see any settings you add here and pass it on to Webpack.
 
 ## Init
 
-Every project starts somewhere. You can `git clone` a quick start or manually put the files into
-the right spot. With Epack it's easy to get a base project started quick. Epack loads
+Every project starts somewhere. Some Electron + Webpack tools require you to use `git clone [project]` to pull down
+a boiler plate repo or download a quick start zip or maybe you manually put the files into
+the right spot. With Epack, no need for all that non-sense, it's easy to get a base project started quick. Epack loads
 a boiler plate setup into your project to help get you going fast and does the tedious part for you.
 
 Run the command below in a project folder to initialize it as an Epack project.
