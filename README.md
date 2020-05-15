@@ -39,6 +39,12 @@ or locally in the current project
 npm install electron-webpacker
 ````
 
+In order to run Epack when installing locally, you must use the `npx` command to run packages aren't installed globally `npm install [pkg] -g`.
+
+`npx epack init`
+
+This is because NPM installs locally dependencies in `./node_modules/.bin` and your shell won't see the binaries here unless it's on the PATH environment. 
+
 # Documentation
 
 Epack is very lightweight. It's entire purpose is helping speed up the build and run process of
