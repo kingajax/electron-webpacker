@@ -47,10 +47,10 @@ const log = require("./logger");
 /*
  * WEBPACK CONFIGURATIONs
  */
-const __CONFIG_FILE_NAME = "ewebpack.json";
+const __CONFIG_FILE_NAME = "epack.json";
 
 /*
- * base configuration for ewebpack.json file
+ * base configuration for epack.json file
  */
 var __BASE_CONFIG =
 {
@@ -85,7 +85,7 @@ var __getConfig = function(p)
   var raw = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "{}";
 
   try {
-    log.debug(`Loaded ewebpack.json from ${p}`);
+    log.debug(`Loaded epack.json from ${p}`);
     return JSON.parse(raw);
   } catch (e)
   {
@@ -115,7 +115,7 @@ var __validateConfig = function(config)
 {
   if (config.main.path == config.renderer.path && config.main["webpack-file"] == config.renderer["webpack-file"])
   {
-    log.warn("Conflicting webpack-file names in ewebpack.json.");
+    log.warn("Conflicting webpack-file names in epack.json.");
 
     var msg = `When your 'src' folder for main and renderer are both '${config.main.path}' \n`
       .concat(`you cannot have the same 'webpack-file' value '${config.main["webpack-file"]}.\n`)
@@ -180,16 +180,16 @@ var init = async function(argv)
   } catch (e) {log.error(e.message); return;}
 
   if (!config)
-  {log.error("Cannot continue due to maliformed ewebpack.json. Any continue could overwrite or currupt project."); return;}
+  {log.error("Cannot continue due to maliformed epack.json. Any continue could overwrite or currupt project."); return;}
 
   var f = path.resolve(argv.path, __CONFIG_FILE_NAME);
   if (fs.existsSync(f))
   {
-    log.warn(`ewebpack.json exists (using this configuration): delete this file to start over.`);
+    log.warn(`epack.json exists (using this configuration): delete this file to start over.`);
   }
   else
   {
-    log.debug(`ewebpack.json does not exist; writing file.`);
+    log.debug(`epack.json does not exist; writing file.`);
     __writeConfigFile(argv.path);
     log.debug("Wrote file.");
   }
@@ -318,7 +318,7 @@ var __loadWebpackConfig = function(file)
  *    --output-filename={output} ->           output.filenmae
  *    --config="{webpack.config.js}" ->       [none]
  *
- * These settings may be override by webpack-file specified in ewebpack.json;
+ * These settings may be override by webpack-file specified in epack.json;
  * @param {string} p relative path to resolve all paths
  * @return {[type]} [description]
  */
@@ -366,7 +366,7 @@ var __buildWebpackCliArgs = function(p, config, webpack, env, target, output, co
 };
 
 /**
- * Build webpack.config.js files specified in ewebpack.json
+ * Build webpack.config.js files specified in epack.json
  *
  * build for main and/or renderer processes
  *
@@ -383,7 +383,7 @@ var build = function(argv)
   var config = {};
 
   /*
-   * Load ewebpack.json; extend settings with user defined:
+   * Load epack.json; extend settings with user defined:
    *  Catch: When the file fails to load, stop the program.
    *  Override with --force=true to run with defaults
    */
@@ -391,7 +391,7 @@ var build = function(argv)
     config = __getConfig(argv.path);
   } catch (e)
   {
-    log.warn(`Use --force=true to override; reverts to default ewebpack.json configuation. See documentation.`);
+    log.warn(`Use --force=true to override; reverts to default epack.json configuation. See documentation.`);
     if (!argv.force) return;
   }
 
@@ -536,7 +536,7 @@ var distribute = function(argv)
   {log.error("electron-builder could not be found. Check path environment. Put electron-builder on it."); return;}
 
   /*
-   * Load ewebpack.json; extend settings with user defined:
+   * Load epack.json; extend settings with user defined:
    *  Catch: When the file fails to load, stop the program.
    *  Override with --force=true to run with defaults
    */
@@ -544,7 +544,7 @@ var distribute = function(argv)
     config = __getConfig(argv.path);
   } catch (e)
   {
-    log.warn(`Use --force=true to override; reverts to default ewebpack.json configuation. See documentation.`);
+    log.warn(`Use --force=true to override; reverts to default epack.json configuation. See documentation.`);
     if (!argv.force) return;
   }
 
@@ -620,7 +620,7 @@ var runElectronWebpack = function(argv)
   var config = {};
 
   /*
-   * Load ewebpack.json; extend settings with user defined:
+   * Load epack.json; extend settings with user defined:
    *  Catch: When the file fails to load, stop the program.
    *  Override with --force=true to run with defaults
    */
@@ -628,7 +628,7 @@ var runElectronWebpack = function(argv)
     config = __getConfig(argv.path);
   } catch (e)
   {
-    log.warn(`Use --force=true to override; reverts to default ewebpack.json configuation. See documentation.`);
+    log.warn(`Use --force=true to override; reverts to default epack.json configuation. See documentation.`);
     if (!argv.force) return;
   }
 
@@ -840,14 +840,14 @@ yargs
    */
   .command(
   ["init [path]", "initialize", "i"],
-    "Initializes an .ewebpack.json configuration file and electron+webpack project structure",
+    "Initializes an .epack.json configuration file and electron+webpack project structure",
     _yargInitBuilder, init
   )
 
   /*
    * build [type] [path] command
    */
-  .command("build [type] [path]", "Build to dist/; config webpack-file location @ ewebpack.json; default is src/main/webpack.config.js.", _yargBuildBuilder, (argv) => {build(argv);})
+  .command("build [type] [path]", "Build to dist/; config webpack-file location @ epack.json; default is src/main/webpack.config.js.", _yargBuildBuilder, (argv) => {build(argv);})
 
   /*
    *
