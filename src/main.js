@@ -667,7 +667,7 @@ var runElectronWebpack = function(argv)
     }
     serverArgs.unshift(`--port=${argv.port}`);
 
-    var contentBase = _.has(webpackRendererConfig, "devServer.contentBase") ? webpackRendererConfig.contentBase : "./dist";
+    var contentBase = _.has(webpackRendererConfig, "devServer.contentBase") ? webpackRendererConfig.devServer.contentBase : "./dist";
     serverArgs.push(`--content-base=${contentBase}`);
 
     /*
