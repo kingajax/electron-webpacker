@@ -300,7 +300,7 @@ var __loadWebpackConfig = function(file)
   try {
     var config = require(file);
     if (_.isObject(config)) return config;
-  } catch (e) {log.warn(`Could not find ${filename} @ ${p} message: ${e.message}`);}
+  } catch (e) {log.warn(`Could not find ${file} message: ${e.message}`);}
   return {};
 };
 
