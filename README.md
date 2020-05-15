@@ -50,6 +50,11 @@ Epack can help with that--saving you time.
 It runs the commands for you loading in the Webpack config files in your project--just be
 sure to tell it where those files reside. (see ewebpack.json).
 
+Epack depends on many different CLI tools. `webpack-cli` `webpack-dev-server` `electron` `electron-builder` and `npm`.
+
+If it cannot find any of these tools on the path env it will try to install them--it will not try and install NPM
+it expects it to be available in environment.
+
 Remember Epack has various aliases such as `epacker` and `epack` and the full version `electron-webpacker`.
 When this article refers to `epack` you can use any of the aliases. They all do the same thing.
 
@@ -109,6 +114,26 @@ epack init ../any-folder
 
 By default, `epack init` will use the current folder '.' to initialize the project.
 
+
+Example:
+
+Running the command init:
+
+````bash
+epack init
+````
+
+Yields the output:
+
+````bash
+➜  project-folder epack init
+info: Created directory src/main
+info: Created directory src/renderer
+info: Writing Electron main process: main.js @ src/main
+info: Writing Electron renderer process: main.js @ src/renderer
+info: Writing webpack.config.js files @ src/main src/renderer
+````
+
 ## Build
 
 The build command helps build your Webpack files for Electron's main and renderer process. It
@@ -123,6 +148,69 @@ or
 
 ````bash
 epack build ../any-folder
+````
+
+For example, running in project-folder:
+
+````bash
+epack build
+````
+
+yeilds the output,
+
+````bash
+➜  test epack build         
+warn: webpack-cli not found on environment path.
+info: Installing webpack-cli:
+npm WARN deprecated urix@0.1.0: Please see https://github.com/lydell/urix#deprecated
+npm WARN deprecated resolve-url@0.2.1: https://github.com/lydell/resolve-url#deprecated
+npm WARN deprecated chokidar@2.1.8: Chokidar 2 will break on node v14+. Upgrade to chokidar 3 with 15x less dependencies.
+npm WARN deprecated fsevents@1.2.13: fsevents 1 will break on node v14+ and could be using insecure binaries. Upgrade to fsevents
+2.
+
+> fsevents@1.2.13 install /Users/kingajax/Documents/apps/test/node_modules/fsevents
+> node install.js
+
+  SOLINK_MODULE(target) Release/.node
+  CXX(target) Release/obj.target/fse/fsevents.o
+  SOLINK_MODULE(target) Release/fse.node
+npm WARN saveError ENOENT: no such file or directory, open '/Users/kingajax/Documents/apps/test/package.json'
+npm WARN enoent ENOENT: no such file or directory, open '/Users/kingajax/Documents/apps/test/package.json'
+npm WARN test No description
+npm WARN test No repository field.
+npm WARN test No README data
+npm WARN test No license field.
+
++ webpack-cli@3.3.11
++ webpack@4.43.0
+added 400 packages from 224 contributors and audited 400 packages in 13.827s
+
+4 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+info: Running webpack-cli for main process @ src/main
+Hash: ce38e7e68b11fce74a3e
+Version: webpack 4.43.0
+Time: 55ms
+Built at: 05/14/2020 10:28:05 PM
+  Asset      Size  Chunks             Chunk Names
+main.js  6.15 KiB    null  [emitted]  null
+Entrypoint null = main.js
+[./main.js] 1.47 KiB {null} [built]
+[electron] external "electron" 42 bytes {null} [built]
+[path] external "path" 42 bytes {null} [built]
+[url] external "url" 42 bytes {null} [built]
+info: Running webpack-cli for renderer process @ src/renderer
+Hash: d86739d4cd6704a98522
+Version: webpack 4.43.0
+Time: 44ms
+Built at: 05/14/2020 10:28:06 PM
+      Asset      Size  Chunks             Chunk Names
+renderer.js  3.92 KiB    null  [emitted]  null
+Entrypoint null = renderer.js
+[./main.js] 73 bytes {null} [built]
 ````
 
 ## Run
@@ -141,6 +229,98 @@ or
 
 ````bash
 epack run ../any-folder/
+````
+For example, running command
+
+````bash
+epack run
+````
+
+Yeilds the following output
+
+
+````bash
+➜  test epack run           
+info: Running webpack-cli for main process @ src/main
+Hash: ce38e7e68b11fce74a3e
+Version: webpack 4.43.0
+Time: 53ms
+Built at: 05/14/2020 9:26:12 PM
+  Asset      Size  Chunks             Chunk Names
+main.js  6.15 KiB    null  [emitted]  null
+Entrypoint null = main.js
+[./main.js] 1.47 KiB {null} [built]
+[electron] external "electron" 42 bytes {null} [built]
+[path] external "path" 42 bytes {null} [built]
+[url] external "url" 42 bytes {null} [built]
+[33mwarn[39m: webpack-dev-server not found on environment path.
+[32minfo[39m: Installing webpack-dev-server:
++ webpack-dev-server@3.11.0
+added 171 packages from 160 contributors and audited 815 packages in 7.123s
+
+20 packages are looking for funding
+  run `npm fund` for details
+
+found 1 high severity vulnerability
+  run `npm audit fix` to fix them, or `npm audit` for details
+[33mwarn[39m: electron not found on environment path.
+[32minfo[39m: Installing electron:
+
+> core-js@3.6.5 postinstall /Users/kingajax/Documents/apps/test/node_modules/core-js
+> node -e "try{require('./postinstall')}catch(e){}"
+
+[96mThank you for using core-js ([94m https://github.com/zloirock/core-js [96m) for polyfilling JavaScript standard library![0m
+
+[96mThe project needs your help! Please consider supporting of core-js on Open Collective or Patreon: [0m
+[96m>[94m https://opencollective.com/core-js [0m
+[96m>[94m https://www.patreon.com/zloirock [0m
+
+[96mAlso, the author of core-js ([94m https://github.com/zloirock [96m) is looking for a good job -)[0m
+
+
+> electron@8.2.5 postinstall /Users/kingajax/Documents/apps/test/node_modules/electron
+> node install.js
+
++ electron@8.2.5
+added 62 packages from 83 contributors and audited 967 packages in 6.71s
+
+22 packages are looking for funding
+  run `npm fund` for details
+
+found 3 high severity vulnerabilities
+  run `npm audit fix` to fix them, or `npm audit` for details
+[32minfo[39m: Running webpack-dev-server for renderer process @ src/renderer
+[32minfo[39m: Using port 9000
+[32minfo[39m: /Users/kingajax/Documents/apps/test/node_modules/.bin/webpack-dev-server
+[32minfo[39m: Running webpack-dev-server for renderer process @ src/renderer
+Loading URL @ http://localhost:9000/renderer for environment=development
+[34mℹ[39m [90m｢wds｣[39m: Project is running at http://localhost:9000/
+[34mℹ[39m [90m｢wds｣[39m: webpack output is served from /
+[34mℹ[39m [90m｢wds｣[39m: Content not from webpack is served from /Users/kingajax/Documents/apps/test/dist
+[34mℹ[39m [90m｢wdm｣[39m: Hash: e49d1e67069e3886259c
+Version: webpack 4.43.0
+Time: 312ms
+Built at: 05/14/2020 10:30:53 PM
+      Asset     Size  Chunks             Chunk Names
+renderer.js  300 KiB    null  [emitted]  null
+Entrypoint null = renderer.js
+[0] multi (webpack)-dev-server/client?http://localhost:9000 ./main.js 40 bytes {null} [built]
+[../../node_modules/ansi-html/index.js] /Users/kingajax/Documents/apps/test/node_modules/ansi-html/index.js 4.16 KiB {null} [built]
+[../../node_modules/html-entities/lib/index.js] /Users/kingajax/Documents/apps/test/node_modules/html-entities/lib/index.js 449 bytes {null} [built]
+[../../node_modules/loglevel/lib/loglevel.js] /Users/kingajax/Documents/apps/test/node_modules/loglevel/lib/loglevel.js 8.41 KiB {null} [built]
+[../../node_modules/webpack-dev-server/client/clients/SockJSClient.js] (webpack)-dev-server/client/clients/SockJSClient.js 4.06 KiB {null} [built]
+[../../node_modules/webpack-dev-server/client/index.js?http://localhost:9000] (webpack)-dev-server/client?http://localhost:9000 4.29 KiB {null} [built]
+[../../node_modules/webpack-dev-server/client/overlay.js] (webpack)-dev-server/client/overlay.js 3.51 KiB {null} [built]
+[../../node_modules/webpack-dev-server/client/socket.js] (webpack)-dev-server/client/socket.js 1.53 KiB {null} [built]
+[../../node_modules/webpack-dev-server/client/utils/createSocketUrl.js] (webpack)-dev-server/client/utils/createSocketUrl.js 2.91 KiB {null} [built]
+[../../node_modules/webpack-dev-server/client/utils/log.js] (webpack)-dev-server/client/utils/log.js 964 bytes {null} [built]
+[../../node_modules/webpack-dev-server/client/utils/reloadApp.js] (webpack)-dev-server/client/utils/reloadApp.js 1.59 KiB {null} [built]
+[../../node_modules/webpack-dev-server/client/utils/sendMessage.js] (webpack)-dev-server/client/utils/sendMessage.js 402 bytes {null} [built]
+[../../node_modules/webpack-dev-server/node_modules/strip-ansi/index.js] (webpack)-dev-server/node_modules/strip-ansi/index.js 161 bytes {null} [built]
+[../../node_modules/webpack/hot sync ^\.\/log$] (webpack)/hot sync nonrecursive ^\.\/log$ 170 bytes {null} [built]
+[./main.js] 73 bytes {null} [built]
+    + 11 hidden modules
+[34mℹ[39m [90m｢wdm｣[39m: Compiled successfully.
 ````
 
 ## Distribute
