@@ -41,9 +41,11 @@ npm install electron-webpacker
 
 In order to run Epack when installing locally, you must use the `npx` command to run packages aren't installed globally `npm install [pkg] -g`.
 
-`npx epack init`
+````javascript
+npx epack init
+````
 
-This is because NPM installs locally dependencies in `./node_modules/.bin` and your shell won't see the binaries here unless it's on the PATH environment. 
+This is because NPM installs locally dependencies in `./node_modules/.bin` and your shell won't see the binaries here unless it's on the PATH environment.
 
 # Documentation
 
@@ -93,6 +95,92 @@ The standard project structure Epack configures using `epack init .` is:
 
 Add Webpack config settings for the Electron main and renderer process in the webpack.config.js file.
 Epack will see any settings you add here and pass it on to Webpack.
+
+### What are the purposes of the files Epack generates?
+
+*src/main/main.js*
+This is Electron's main process. It helps startup Electron creating any
+`BrowserWindow`'s and setting up the environment.
+
+*src/main/webpack.config.js*
+This is the Webpack configuration file for your Electron main process. It specifies how Webpack will build your main process source into a single main.js build file in `dist/`
+
+*src/renderer/main.js*
+This is Electron's renderer process. It's what is displayed in the `BrowserWindow` Electron opens.
+
+*src/main/webpack.config.js*
+This is the Webpack configuration file for your Electron renderer process. It specifies how Webpack will build your renderer process into a single renderer.js build file in `dist/`
+
+*dist*
+Anything here is built by Webpack. Change this location by updating your
+Webpack config. The configuration is inside the output object `{output: {}}`
+
+### When I use init, what is inside the webpack.config.js Epack generates for me?
+
+Nothing, Epack doesn't apply any defaults other than specifying your entry file and context. Anything you add here, will be picked up by Epack and sent to `webpack-cli` when your main or renderer process is build. What you config in your Webpack config always takes priority over any defaults applied by Epack.
+
+*src/main/webpack.config.js*
+
+````javascript
+// const path = require('path');
+
+module.exports = {
+  /*
+   * This is just a webpack.config.js file see documentation for
+   * configuration of Webpack.
+   *
+   * Below is the default options automatically applied when running
+   *  `epack build`
+   *
+   * You can override any of the settings below. Settings defined below takes
+   * preceedance. If these defaults aren't disired, simply change them.
+   *
+   */
+  // entry: "./main.js",
+  // context: path.resolve(__dirname),
+  // target: "electron-main",
+  // mode: "development",
+  // output: {
+  //   filename: "./main.js"
+  // }
+  node: {
+    __dirname: false,
+    __filename: false
+  }
+};
+
+````
+
+*src/renderer/webpack.config.js*
+
+````javascript
+// const path = require('path');
+
+module.exports = {
+  /*
+   * This is just a webpack.config.js file see documentation for
+   * configuration of Webpack.
+   *
+   * Below is the default options automatically applied when running
+   *  `epack build`
+   *
+   * You can override any of the settings below. Settings defined below takes
+   * preceedance. If these defaults aren't disired, simply change them.
+   *
+   */
+  // entry: "./main.js",
+  // or renderer.js if main.js already exists
+  // entry: "./renderer.js",
+  // context: path.resolve(__dirname),
+  // target: "electron-renderer",
+  // mode: "development",
+  // output: {
+  //   filename: "./renderer.js"
+  // }
+};
+````
+
+Rest assured Epack is lightweight and can be removed at anytime from your project build process. Get going quickly with Epack and if you decide it's not needed anymore remove it from your process and revert back to scripts.
 
 ## Init
 
@@ -401,37 +489,67 @@ Inside your Electron main process code you will find the following lines:
 
 ````javascript
 // Create the browser window.
- const win = new BrowserWindow({
-   width: 800,
-   height: 600,
-   webPreferences: {
-     nodeIntegration: true
-   }
- });
+const win = new BrowserWindow({
+  width: 800,
+  height: 600,
+  webPreferences: {
+   nodeIntegration: true
+  }
+});
 ````
 Above just creates a BrowserWindow in Electron setting the width and height.
 
 ````javascript
- var prodUrl = format({
-   pathname: path.join(__dirname, "index.html"),
-   protocol: 'file',
-   slashes: true
- });
+import {format} from "url";
+
+/*
+ * Build the URL that is loaded when Node's NODE_ENV is `production`
+ */
+var prodUrl = format({
+
+  /*
+   * pathname builds the base path to your static files
+   * which will be loaded in production.
+   */
+  pathname: path.join(__dirname, "index.html"),
+
+  /*
+   * we're loading this file locally, not on
+   * some server hosted somewhere else.
+   */
+  protocol: 'file',
+  slashes: true
+});
 ````
 
 Above, we build the path for Electron "production". We won't have webpack-dev-server
 serving our renderer process in production. We will need to load the minified
 all packed up version of our application (static gen files).
 
-````javascirpt
- var port = process.env.WEBPACK_DEV_SERVER_PORT || 9000;
+````javascript
+/*
+ * Did EPACK send us the `webpack-dev-server` port as a NODE_ENV variable?
+ */
+var port = process.env.WEBPACK_DEV_SERVER_PORT || 9000;
 
- var url = process.env.NODE_ENV == "development"  ?
-  `http://localhost:${port}/${process.env.WEBPACK_DEV_SERVER_PATH || "renderer"}` : prodUrl;
+/*
+ * When the NODE_ENV is `development`, use the `webpack-dev-server`
+ * URL. It's hosting our content for us and using HMR and reloads.
+ */
+var url = process.env.NODE_ENV == "development"  ?
+`http://localhost:${port}/${process.env.WEBPACK_DEV_SERVER_PATH || "renderer"}` : prodUrl;
 
- console.log(`Loading URL @ ${url} for environment=${process.env.NODE_ENV}`);
+// In Electron's main process, output what URL was loaded.
+console.log(`Loading URL @ ${url} for environment=${process.env.NODE_ENV}`);
 
- win.loadURL(url);
+/*
+ * Based on our NODE_ENV, whether we're currently in `production` or
+ * `development`, load the correct URL. In `development`, our renderer
+ * process is served from `webpack-dev-server`, however, in production, mostly
+ * after we've packaged up our application for distribution, `webpack-dev-server`
+ * won't be there, so we'll need to use a relative local path.
+ */
+win.loadURL(url);
 ````
 Above, we try and read the webpack-dev-server port provided as an ENV variable. If not provided,
 we fall back to using port 9000. You can see when Electron is running in "development" it loads
