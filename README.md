@@ -122,7 +122,7 @@ structure you specify.
 
 ### When I use init, what is inside the webpack.config.js Epack generates for me?
 
-Nothing, Epack doesn't apply any defaults other than specifying your entry file and context. Anything you add here, will be picked up by Epack and sent to `webpack-cli` when your main or renderer process is build. What you config in your Webpack config always takes priority over any defaults applied by Epack.
+Nothing, Epack doesn't apply any defaults other than specifying your entry file and context. Anything you add here, will be picked up by Epack and sent to `webpack-cli` when your main or renderer process is built. What you config in your Webpack config always takes priority over any defaults applied by Epack.
 
 **src/main/webpack.config.js**
 
