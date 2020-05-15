@@ -16,7 +16,7 @@ a project.
 Epack is simple stupid. It doesn't require you to add anything at all to your package.json and
 gets out of the way to help you stay focused on what's important--your project. It runs many of
 the commands you'd execute yourself such as `electron` and `webpack-dev-server` behind the scenes
-speeding up your development process and saving you time. And it's configurable. (see ewebpack.json)
+speeding up your development process and saving you time. And it's configurable. (see epack.json)
 
 It's really just a build tool. At any time you can stop using Epack and still have a fully
 working project.
@@ -59,7 +59,7 @@ do manually. Or clutter up your npm scripts with many commands.
 Epack can help with that--saving you time.
 
 It runs the commands for you loading in the Webpack config files in your project--just be
-sure to tell it where those files reside. (see ewebpack.json).
+sure to tell it where those files reside. (see epack.json).
 
 Epack depends on many different CLI tools. `webpack-cli` `webpack-dev-server` `electron` `electron-builder` and `npm`.
 
@@ -73,7 +73,7 @@ When this article refers to `epack` you can use any of the aliases. They all do 
 
 Epack adheres to the standard Electron/Webpack folder structure. It uses this structure as a default. You
 can structure your project as you wish. Epack forces no structure. Just be sure to tell it where your Webpack
-configuration files are using ewebpack.json configuration file (see below)
+configuration files are using epack.json configuration file (see below)
 
 The standard project structure Epack configures using `epack init .` is:
 
@@ -89,7 +89,7 @@ The standard project structure Epack configures using `epack init .` is:
   ├─ dist
   │  ├─ main.js
   │  └─ renderer.js
-  └─ ewebpack.json
+  └─ epack.json
 
 ````
 
@@ -115,9 +115,9 @@ This is the Webpack configuration file for your Electron renderer process. It sp
 Anything here is built by Webpack. Change this location by updating your
 Webpack config. The configuration is inside the output object `{output: {}}`
 
-**ewebpack.json**
+**epack.json**
 This is the configuration file that Epack creates to keep track of where your
-Webpack configuration files are for Electron's main and renderer processes. If you use the default standard directory structure (shown above), Epack will find these automatically. If you don't use the standard structure you will need to tell Epack how your project is configured. When running `epack init` Epack will use an existing `ewebpack.json` to initialize your project creating and laying out the directory
+Webpack configuration files are for Electron's main and renderer processes. If you use the default standard directory structure (shown above), Epack will find these automatically. If you don't use the standard structure you will need to tell Epack how your project is configured. When running `epack init` Epack will use an existing `epack.json` to initialize your project creating and laying out the directory
 structure you specify.
 
 ### When I use init, what is inside the webpack.config.js Epack generates for me?
@@ -230,7 +230,7 @@ info: Writing webpack.config.js files @ src/main src/renderer
 ## Build
 
 The `build` or `b` command helps build your Webpack files for Electron's main and renderer process. It
-will load in the webpack.config.js files (or the files specified in ewebpack.json, see ewebpack.json).
+will load in the webpack.config.js files (or the files specified in epack.json, see epack.json).
 Then, it passes your Webpack config to `webpack-cli` building your source (starting at entry point)
 into the configured 'dist/' folder. e.g., dist/main.js and dist/renderer.js
 
@@ -380,11 +380,11 @@ epack init --verbose
 
 You can run `--version` to get the version or `--help` if you're unsure about the commands to run.
 
-## ewebpack.json (configuration)
+## epack.json (configuration)
 
 Epack uses a configuration file to find what it needs to run, build, and distribute your project properly. If it
 can't find it, it will use the defaults built into it and write the file to the current folder. You can change the settings
-in this file at anytime. If you use the standard Epack folder structure, you won't need the ewebpack.json file
+in this file at anytime. If you use the standard Epack folder structure, you won't need the epack.json file
 and can delete it.
 
 ````json
@@ -417,7 +417,7 @@ The default value is src/renderer
 The default value is webpack.config.js
 
 If Epack can't find these files, it can't do it's work proerly. At a bare minimum, you
-must configure these paths properly. It will try to use the defaults if no ewebpack.json file
+must configure these paths properly. It will try to use the defaults if no epack.json file
 exists in the current project.
 
 # Support
