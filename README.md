@@ -70,28 +70,18 @@ configuration files are using ewebpack.json configuration file (see below)
 The standard project structure Epack configures using `epack init .` is:
 
 ````bash
-
-  Project/
-  |
-  |— — src/
-  |    |
-  |    |— — main/
-  |    |    |
-  |    |    |— — main.js
-  |    |    |— — webpack.config.js
-  |    |
-  |    |— — renderer/
-  |         |
-  |         |— — main.js
-  |         |— — webpack.config.js
-  |
-  |— — dist/
-  |    |
-  |    |— — main.js
-  |    |— — renderer.js
-  |
-  |— — ewebpack.json
-
+  .
+  ├── src
+  |   ├── main
+  |   |   ├── main.js
+  |   |   └── webpack.config.js
+  |   └── renderer
+  |       ├── main.js
+  |       └── webpack.config.js
+  ├── dist
+  |   ├── main.js
+  |   └── renderer.js
+  └── ewebpack.json
 
 ````
 
