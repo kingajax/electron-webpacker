@@ -36,10 +36,12 @@ const path = require("path");
 const util = require("util");
 const {spawn, spawnSync} = require("child_process");
 
+// npm modules
 const yargs = require("yargs");
 const _ = require("lodash");
 const which = require("which");
 
+// local
 const log = require("./logger");
 
 /*
@@ -48,7 +50,7 @@ const log = require("./logger");
 const __CONFIG_FILE_NAME = "ewebpack.json";
 
 /*
- *
+ * base configuration for ewebpack.json file
  */
 var __BASE_CONFIG =
 {
@@ -73,7 +75,8 @@ var __inspectObj = function(obj, depth = 1)
 {return util.inspect(obj, {showHidden: false, depth}, {}, true);};
 
 /**
- * [description]
+ * Load the configuration file from the directory p
+ *
  * @return {[type]} [description]
  */
 var __getConfig = function(p)
@@ -92,7 +95,8 @@ var __getConfig = function(p)
 };
 
 /**
- * [__before description]
+ * Write the configuration file to p
+ *
  * @type {[type]}
  */
 var __writeConfigFile = function(p)
@@ -102,7 +106,8 @@ var __writeConfigFile = function(p)
 };
 
 /**
- * [description]
+ * validate the configuration file
+ *
  * @param  {[type]} config [description]
  * @return {[type]}        [description]
  */
@@ -121,7 +126,9 @@ var __validateConfig = function(config)
 };
 
 /**
- * runs before all commands
+ * runs before all commands;
+ * sets the logging to debug for verbose
+ *
  * @param  {[type]} argv [description]
  * @return {[type]}      [description]
  */
@@ -132,6 +139,7 @@ var __before = function(argv)
 
 /**
  * Default command
+ *
  * @return {[type]} [description]
  */
 var defaultCommand = function(argv)
@@ -141,6 +149,9 @@ var defaultCommand = function(argv)
 
 /**
  * init command
+ *
+ * setups up an electron + webpack file structure
+ *
  * @return {[type]} [description]
  */
 var init = async function(argv)
@@ -236,7 +247,8 @@ var init = async function(argv)
 };
 
 /**
- * [description]
+ * check if a binary is installed on the system path
+ *
  * @param  {[type]} binary [description]
  * @return {[type]}        [description]
  */
@@ -277,7 +289,8 @@ var run = function(cmd, args, cwd, stdio = "pipe", env = {})
 };
 
 /**
- * [description]
+ *  load in webpack.config.js configuration file
+ *
  * @param  {[type]} p      [description]
  * @param  {[type]} config [description]
  * @return {[type]}        [description]
@@ -353,7 +366,10 @@ var __buildWebpackCliArgs = function(p, config, webpack, env, target, output, co
 };
 
 /**
- * [description]
+ * Build webpack.config.js files specified in ewebpack.json
+ *
+ * build for main and/or renderer processes
+ *
  * @return {[type]} [description]
  */
 var build = function(argv)
@@ -411,7 +427,8 @@ var build = function(argv)
 };
 
 /**
- * [description]
+ * Build main webpack.config.js file only.
+ *
  * @param  {[type]} argv [description]
  * @return {[type]}      [description]
  */
@@ -448,7 +465,7 @@ var buildMain = async function(argv, config)
 };
 
 /**
- * Build process for renderer
+ * Build webpack.confgi.js file for the renderer
  *
  * @param  {[type]} argv [description]
  * @param  {[type]} type [description]
@@ -484,6 +501,9 @@ var buildRenderer = function(argv, config)
 
 /**
  * Distribute the package.
+ *
+ * Calls build for both main and renderer and main. Uses
+ * `electron-builder` in webpack output.path location
  *
  * @param  {[type]} argv [description]
  * @return {[type]}      [description]
@@ -549,8 +569,10 @@ var distribute = function(argv)
 };
 
 /**
- * [description]
+ * Run electron + webpack-dev-server
  *
+ * Find the webpack.config.js for both main and renderer, build it,
+ * run `webpack-dev-server` and then `electron`
  *
  * @return {[type]} [description]
  */
@@ -741,6 +763,48 @@ var _yargBuildBuilder = function(y)
   });
 };
 
+/**
+ * ARG builder for distribute
+ *
+ * @return {[type]} [description]
+ */
+var _yargDistBuilder = function(y) {
+  return y.option("force", {
+    description: "Force build.",
+    default: false
+  })
+  .option("path", {
+    description: "Path",
+    default: "."}
+  );
+};
+
+/**
+ * ARG build for run
+ *
+ * @param  {[type]} y [description]
+ * @return {[type]}   [description]
+ */
+var _yargRunBuilder = function(y)
+{
+  return y.option("port", {
+    description: "Webpack dev server port.",
+    default: 9000
+  })
+  .option("force", {
+    description: "Force build.",
+    default: false
+  })
+  .option("environment", {
+    description: "Environment passed to Electron",
+    default: "development"
+  })
+  .option("path", {
+    description: "Path",
+    default: "."}
+  );
+};
+
 /*
  * SETUP YARGS CLI interface
  *
@@ -788,12 +852,12 @@ yargs
   /*
    *
    */
-  .command(["dist [path]", "distribute"], "Dist and build electron package.", (y) => {return y.option("force", {description: "Force build.", default: false}).option("path", {description: "Path", default: "."});}, (argv) => {distribute(argv);})
+  .command(["dist [path]", "distribute"], "Dist and build electron package.", _yargDistBuilder, (argv) => {distribute(argv);})
 
   /*
    *
    */
-  .command(["run [path]", "r", "start"], "Run Electron Webpack application.", (y) => {return y.option("port", {description: "Webpack dev server port.", default: 9000}).option("force", {description: "Force build.", default: false}).option("environment", {description: "Environment passed to Electron", default: "development"}).option("path", {description: "Path", default: "."});}, (argv) => {runElectronWebpack(argv);})
+  .command(["run [path]", "r", "start"], "Run Electron Webpack application.", _yargRunBuilder, (argv) => {runElectronWebpack(argv);})
   /*
    * Add verbose loggining option
    */
