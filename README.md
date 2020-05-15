@@ -98,28 +98,33 @@ Epack will see any settings you add here and pass it on to Webpack.
 
 ### What are the purposes of the files Epack generates?
 
-*src/main/main.js*
+**src/main/main.js**
 This is Electron's main process. It helps startup Electron creating any
 `BrowserWindow`'s and setting up the environment.
 
-*src/main/webpack.config.js*
+**src/main/webpack.config.js**
 This is the Webpack configuration file for your Electron main process. It specifies how Webpack will build your main process source into a single main.js build file in `dist/`
 
-*src/renderer/main.js*
+**src/renderer/main.js**
 This is Electron's renderer process. It's what is displayed in the `BrowserWindow` Electron opens.
 
-*src/main/webpack.config.js*
+**src/main/webpack.config.js**
 This is the Webpack configuration file for your Electron renderer process. It specifies how Webpack will build your renderer process into a single renderer.js build file in `dist/`
 
-*dist*
+**dist**
 Anything here is built by Webpack. Change this location by updating your
 Webpack config. The configuration is inside the output object `{output: {}}`
+
+**ewebpack.json**
+This is the configuration file that Epack creates to keep track of where your
+Webpack configuration files are for Electron's main and renderer processes. If you use the default stanard structure, Epack will find these automatically. If you don't use the standard structure you will need to tell Epack how your project is configured. When running `epack init` Epack will use an existing `ewwebpack.json` to initialize your project creating and laying out the directory
+structure you specify.
 
 ### When I use init, what is inside the webpack.config.js Epack generates for me?
 
 Nothing, Epack doesn't apply any defaults other than specifying your entry file and context. Anything you add here, will be picked up by Epack and sent to `webpack-cli` when your main or renderer process is build. What you config in your Webpack config always takes priority over any defaults applied by Epack.
 
-*src/main/webpack.config.js*
+**src/main/webpack.config.js**
 
 ````javascript
 // const path = require('path');
@@ -151,7 +156,7 @@ module.exports = {
 
 ````
 
-*src/renderer/webpack.config.js*
+**src/renderer/webpack.config.js**
 
 ````javascript
 // const path = require('path');
