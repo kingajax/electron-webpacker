@@ -699,7 +699,6 @@ var runElectronWebpack = function(argv)
   var elect = spawn(electron, [path.resolve(argv.path, output, main)], {
     cwd: path.resolve(argv.path),
     stdio: "inherit",
-    windowsHide: true,
     env
   });
 
