@@ -35,7 +35,7 @@ function createWindow () {
 
   // Open the DevTools.
   if (process.env.NODE_ENV == "development") {
-    win.webContents.openDevTools();
+    win.webContents.openDevTools({mode: "undocked"});
   }
 }
 
