@@ -1,6 +1,6 @@
 {
   "name": "electron-webpacker",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A simple solution to building Electron + Webpack apps. Initialize a new project, build, run and distribute.",
   "author": "kingajax",
   "license": "GPL-3.0",
