@@ -4,6 +4,11 @@
   "description": "A simple solution to building Electron + Webpack apps. Initialize a new project, build, run and distribute.",
   "author": "kingajax",
   "license": "GPL-3.0",
+  "homepage": "https://github.com/kingajax/electron-webpacker",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/kingajax/electron-webpacker"
+  },
   "dependencies": {
     "lodash": "^4.17.15",
     "which": "^2.0.2",
