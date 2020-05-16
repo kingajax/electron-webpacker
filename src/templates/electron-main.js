@@ -2,8 +2,8 @@ const { app, BrowserWindow } = require('electron');
 const path = require("path");
 const { format } = require('url');
 
-
 function createWindow () {
+
   // Create the browser window.
   const win = new BrowserWindow({
     width: 800,
@@ -13,21 +13,30 @@ function createWindow () {
     }
   });
 
+  /*
+   * determine the correct window to load in
+   * production vs development. if we're in production
+   * there will be no `webpack-dev-server` running our
+   * project, we will need to load it from a static dir.
+   */
+  var port = process.env.WEBPACK_DEV_SERVER_PORT || 9000;
+  var context = process.env.WEBPACK_DEV_SERVER_PATH || "renderer";
+  var devUrl = `http://localhost:${process.env.WEBPACK_DEV_SERVER_PORT || 9000}/${context}`;
+
   var prodUrl = format({
     pathname: path.join(__dirname, "index.html"),
     protocol: 'file',
     slashes: true
   });
 
-  var port = process.env.WEBPACK_DEV_SERVER_PORT || 9000;
-  var url = process.env.NODE_ENV == "development"  ?
-    `http://localhost:${port}/${process.env.WEBPACK_DEV_SERVER_PATH || "renderer"}` : prodUrl;
+  // load the `webpack-dev-server` URL when development otherwise, use prodUrl
+  win.loadURL(process.env.NODE_ENV == "development"  ? devUrl : prodUrl);
   console.log(`Loading URL @ ${url} for environment=${process.env.NODE_ENV}`);
-  win.loadURL(url);
-
 
   // Open the DevTools.
-  win.webContents.openDevTools();
+  if (process.env.NODE_ENV == "development") {
+    win.webContents.openDevTools();
+  }
 }
 
 // This method will be called when Electron has finished

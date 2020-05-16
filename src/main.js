@@ -668,7 +668,7 @@ var runElectronWebpack = function(argv)
     serverArgs.unshift(`--port=${argv.port}`);
 
     var contentBase = _.has(webpackRendererConfig, "devServer.contentBase") ? webpackRendererConfig.devServer.contentBase : "./dist";
-    serverArgs.push(`--content-base=${contentBase}`);
+    serverArgs.push(`--content-base=${path.resolve(argv.path, contentBase)}`);
 
     /*
      * SPAWN webpack-dev-server & Electron
@@ -695,7 +695,7 @@ var runElectronWebpack = function(argv)
   var main = _.has(webpackMainConfig, "output.filename") ? webpackMainConfig.output.filename : "./main.js";
   log.debug(`Electron main file is ${main}`);
   log.info(`Running webpack-dev-server for renderer process @ ${config.renderer.path}`);
-  var elect = spawn(electron, [path.resolve(output, main)], {
+  var elect = spawn(electron, [path.resolve(argv.path, output, main)], {
     cwd: path.resolve(argv.path),
     stdio: "inherit",
     windowsHide: true,
