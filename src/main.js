@@ -694,7 +694,7 @@ var runElectronWebpack = function(argv)
   var output = _.has(webpackMainConfig, "output.path") ? webpackMainConfig.output.path : "./dist";
   var main = _.has(webpackMainConfig, "output.filename") ? webpackMainConfig.output.filename : "./main.js";
   log.debug(`Electron main file is ${main}`);
-  log.info(`Running webpack-dev-server for renderer process @ ${config.renderer.path}`);
+  log.info(`Running electron for main process @ ${config.renderer.path}`);
   var elect = spawn(electron, [path.resolve(argv.path, output, main)], {
     cwd: path.resolve(argv.path),
     stdio: "inherit",
