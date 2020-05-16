@@ -682,6 +682,7 @@ var runElectronWebpack = function(argv)
     log.info(server);
 
     dev = spawn(server, serverArgs, {
+      cwd: path.resolve(argv.path),
       stdio: "inherit",
       windowsHide: true
     });
