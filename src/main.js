@@ -569,6 +569,35 @@ var distribute = function(argv)
 };
 
 /**
+ * [description]
+ * @param  {[type]} argv [description]
+ * @return {[type]}      [description]
+ */
+var __runElectron = function(argv, config, electron, env, webpackDevServerProc)
+{
+  var webpackMainFile = path.resolve(argv.path, config.main.path, config.main["webpack-file"]);
+  var webpackMainConfig = __loadWebpackConfig(webpackMainFile);
+  log.debug(__inspectObj(webpackMainConfig));
+
+  var output = _.has(webpackMainConfig, "output.path") ? webpackMainConfig.output.path : "./dist";
+  var main = _.has(webpackMainConfig, "output.filename") ? webpackMainConfig.output.filename : "./main.js";
+  log.debug(`Electron main file is ${main}`);
+  log.info(`Running electron for main process @ ${config.renderer.path}`);
+  var elect = spawn(electron, [path.resolve(argv.path, output, main)], {
+    cwd: path.resolve(argv.path),
+    stdio: "inherit",
+    env
+  });
+
+  elect.on("close", (c) => {
+    log.warn(`electron quit with status ${c}`);
+    if (webpackDevServerProc) webpackDevServerProc.kill("SIGTERM");
+  });
+
+  return elect;
+};
+
+/**
  * Run electron + webpack-dev-server
  *
  * Find the webpack.config.js for both main and renderer, build it,
@@ -638,6 +667,22 @@ var runElectronWebpack = function(argv)
   _.defaultsDeep(config, __BASE_CONFIG);
   log.debug(`${__CONFIG_FILE_NAME} loaded: ${__inspectObj(config)}`);
 
+  var children = [];
+
+  process.on('SIGINT', function () {
+    log.info("epack terminated: terminte child process.");
+    for (child of children)
+    {child.kill("SIGTERM");}
+    process.exit();
+  });
+
+  process.on('exit', function () {
+    log.info("epack terminated: terminte child process.");
+    for (child of children)
+    {child.kill("SIGTERM");}
+    process.exit();
+  });
+
   /*
    * prepare environment variables for Electron and webpack-dev-server
    */
@@ -647,7 +692,6 @@ var runElectronWebpack = function(argv)
   /*
    * Don't run webpack-dev-server in production
    */
-  var dev;
   if (argv.environment != "production")
   {
     var webpackRendererFile = path.resolve(argv.path, config.renderer.path, config.renderer["webpack-file"]);
@@ -683,34 +727,54 @@ var runElectronWebpack = function(argv)
 
     dev = spawn(server, serverArgs, {
       cwd: path.resolve(argv.path),
-      stdio: "inherit",
+      stdio: ["inherit", "pipe"],
       windowsHide: true
     });
+
+    children.push(dev);
+
+    /*
+     * Check for the stdout to find 'Built at:', this is how to determine
+     * if wepack has built the application and is ready to serve it.
+     *
+     * Then, spawn Electron. If webpack-dev-server doesn't respond with 'Built at:'
+     * spawn Electron after 12 seconds.
+     */
+    var elect;
+    dev.stdout.on("data", (d) => {
+      console.log(d.toString());
+      var build = d.toString().match("Built at:");
+      if (!elect && build) {
+        var time = d.toString().substr(build.index, 20);
+        log.info(`webpack-dev-server reported built time ${time}. Spawning Electron process now.`);
+        elect = __runElectron(argv, config, electron, env, dev);
+        children.push(elect);
+      }
+
+    });
+
+    var timeout = setTimeout(() => {
+      log.debug("Checking to see if electron spawned after 12 seconds.");
+      if (!elect) {
+        log.info("Spawning Electron process now.");
+        elect = __runElectron(argv, config, electron, env, dev);
+        children.push(elect);
+      }
+    }, 12 * 1000);
+
+    dev.on("close", (c) => {
+      log.warn(`webpack-dev-server quit with status ${c}`);
+      if(timeout) clearTimeout(timeout);
+      if(elect) elect.kill("SIGTERM");
+    });
+  }
+  else
+  {
+    elect = __runElectron(argv, config, electron, env);
+    children.push(elect);
   }
 
-  var webpackMainFile = path.resolve(argv.path, config.main.path, config.main["webpack-file"]);
-  var webpackMainConfig = __loadWebpackConfig(webpackMainFile);
-  log.debug(__inspectObj(webpackMainConfig));
 
-  var output = _.has(webpackMainConfig, "output.path") ? webpackMainConfig.output.path : "./dist";
-  var main = _.has(webpackMainConfig, "output.filename") ? webpackMainConfig.output.filename : "./main.js";
-  log.debug(`Electron main file is ${main}`);
-  log.info(`Running electron for main process @ ${config.renderer.path}`);
-  var elect = spawn(electron, [path.resolve(argv.path, output, main)], {
-    cwd: path.resolve(argv.path),
-    stdio: "inherit",
-    env
-  });
-
-  /*
-   * Handle closing of both webpack-dev-server + electron
-   */
-  if (dev) {
-    dev.on("close", (c) => {log.warn(`webpack-dev-server quit with status ${c}`); elect.kill("SIGTERM");});
-  }
-  elect.on("close", (c) => {
-    log.warn(`electron quit with status ${c}`); if (dev) {dev.kill("SIGTERM");}
-  });
 };
 
 /**
