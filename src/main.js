@@ -671,14 +671,14 @@ var runElectronWebpack = function(argv)
 
   process.on('SIGINT', function () {
     log.info("epack terminated: terminte child process.");
-    for (child of children)
+    for (var child of children)
     {child.kill("SIGTERM");}
     process.exit();
   });
 
   process.on('exit', function () {
     log.info("epack terminated: terminte child process.");
-    for (child of children)
+    for (var child of children)
     {child.kill("SIGTERM");}
     process.exit();
   });
@@ -770,7 +770,7 @@ var runElectronWebpack = function(argv)
   }
   else
   {
-    elect = __runElectron(argv, config, electron, env);
+    let elect = __runElectron(argv, config, electron, env);
     children.push(elect);
   }
 
